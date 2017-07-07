@@ -27,8 +27,7 @@ continue="no"
 while [ "no" == $continue ];
 do
 	#_____________Process to run__________________________________#
-	#read -p "Enter the processes to be generated (ending with ';'): " input
-	input="p p > t t~; p p > u u~ ;" #<-----Remove later!!!!!!!!!!!!!!!!!!!!!!!!
+	read -p "Enter the processes to be generated (ending with ';'): " input
 	splitter=($(echo $input | fold -w1))
 	generate=()
 	for i in ${splitter[@]};
@@ -42,14 +41,30 @@ do
 		fi
 	done 
 	echo "${generate[@]}"
-
+	
 	unset i #Clearing variable
 	unset t	#Clearing variable 
 	unset splitter
-
+	
+	#__________This is to get the names in code of the entered process___________#
+	splitter=($(echo $input | sed -e "s/;/#/g" | sed -e "s/ /!/g" | fold -w1))
+	coding=()
+	for i in ${splitter[@]};
+	do 	
+		if [[ "$i" = "#" ]];
+		then				
+			coding+=("$t") 
+			t=""
+		else	
+			t="$t$i"
+		fi
+	done 	
+	unset i #Clearing variable
+	unset t	#Clearing variable 
+	unset splitter
+	
 	#_____________Giving names to each run___________________________
-	#read -p "Enter the name of output (ending with ';'): " names
-	names="Test1; Test2;" #< ----------------- Remove later!!!
+	read -p "Enter the name of output (ending with ';'): " names
 	splitter=($(echo $names | fold -w1))
 	Names=()
 	for i in ${splitter[@]};
@@ -77,104 +92,112 @@ do
 	fi	
 done
 
-#Menu for adding in subprocesses 
-read -p "Would you like to add a sub process? (y/n)" answer
+#==========Menu for adding in subprocesses=============# 
+read -p "Would you like to add a sub process? (y/n) " answer
 if [[ "$answer" == "y" ]]; 
 then 
-echo "Please select one of the following:"
-	select add in "${generate[@]}";
-	do
-		[ -n "${add}" ] && break
-	done
-	echo "You have selected $add"
-	read -p "Enter the subprocess to be added (ending with ';'): " Subinput
-	input="p p > t t~; p p > u u~ ;" #<-----Remove later!!!!!!!!!!!!!!!!!!!!!!!!
-	splitter=($(echo $input | fold -w1))
-	generate=()
-	for i in ${splitter[@]};
-	do 	
-		if [[ "$i" = ";" ]];
-		then				
-			generate+=("$t") 
-			t=""
-		else	
-			t="$t$i"
-		fi
-	done 
-	echo "${generate[@]}"
-
-	unset i #Clearing variable
-	unset t	#Clearing variable 
-	unset splitter
-
-
-
-
-
-
-
-
-
+	echo "Please select one of the following:"
+	generate+=("finished")
+	continue="false"
+	while [[ "$continue" == "false" ]]; do
+		select add in "${generate[@]}";
+		do
+				[ -n ${add} ] && break
+		done
+		#_______________Finding index of add in generate____________________#
+		for i in "${!generate[@]}";
+		do
+			if [[ "${generate[$i]}" == "${add}" ]];
+			then
+				front=${coding[$i]}
+				NameOfOutput=${Names[$i]}
+			fi
+		done
+		#__________________Exiting___________________________________________#
+		if [[ "$add" == "finished" ]];
+		then
+			break
+		fi		
+		echo "You have selected $add"
+		read -p "Enter the subprocess to be added (ending with ';'): " Subinput
+		#______________Storing and Confirming________________________#
+		subcode=($(echo $Subinput | sed -e "s/;/#/g" | sed -e "s/ /!/g" | fold -w1))
+		subprocess=()
+		for decode in ${subcode[@]};
+		do 	
+			if [[ "$decode" = "#" ]];
+			then				
+				subprocess+=("$temp") 
+				temp=""
+			else	
+				temp="$temp$decode"
+			fi
+		done 
+		Message="You have added: \e[1;32m${subprocess[@]}\e[0m to $add"
+		echo -e ${Message[@]} | tr "!" " " 
+		unset decode 	#Clearing variable
+		unset Subinput	#Clearing variable 
+		unset subcode	#Clearing variable
+		unset temp	#Clearing variable
+		unset Message	#Clearing variable
 	
+		#=======Generating the MadShell config===================#
+		MG5Gen="generate $front" #This is the instruction to generate process.
+		echo $MG5Gen | tr "!" " " >> MadShell #Creates the file
+		for subcode in "${subprocess[@]}";
+		do
+			Message="add process $subcode"
+			echo $Message | tr "!" " " >> MadShell	#Creates the file
+		done
+		echo "output $NameOfOutput" >> MadShell #Creates the file
+	done
+elif [[ "$answer" == "n" ]];
+then
+	for i in "${!generate[@]}";
+	do
+		front="generate ${coding[$i]}"
+		echo  $front | tr "!" " ">>MadShell
+		NameOfOutput=${Names[$i]}
+		echo "output $NameOfOutput">>MadShell
+	done
 fi
-
-
+echo "exit">>MadShell
 #============= Actually creating Directories ===================#
-echo "Starting MadGraph 5 and generating the directories"
-#This will use a coding process to maintain white space for the input to MG5
-delimit=($(echo $generate | sed -e "s/;/#/g" | sed -e "s/ /!/g" | fold -w1))
-for del in "${delimit[@]}";
-do 	
-	if [[ "$del" == "#" ]];
-	then 
-		code+=("$name")
-		name=""
-	else 
-		name="$name$del"
-	fi
-done
-#echo "${code[@]}"
+echo "Generating the Files and directories by conducting a test run!"
+#python mg5_aMC MadShell
+rm MadShell
 
-
-
-
-#removing variables 
+#=======================removing variables=======================# 
 unset name
 unset del
 unset delimit
+unset answer 
+unset MG5Gen
+unset subcode
+unset NameOfOutput
+unset front
+unset Message
+unset i 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+########################################################################################
+########################################################################################
+#############				################################################
+#############	 Useful variables	################################################
+#############				################################################
+#======================================================================================#
+# $directory = MadGraph5 bin directory   					       #
+# ${generate[@]} = The entered Processes in string form with no whitespace!            #
+# ${Names[@]} = This gives the process names    				       #
+# ${coding[@]} = The generate string parsed using a code # = new element != Space      #
+# ${subprocess[@]} = Added extra processes in code 				       #
+#======================================================================================#
+########################################################################################
+########################################################################################
 
 #================Entering the options menu for tweaking============================#
 #==================================================================================#
 #Declaring variables
-process=()
-Additional_Process=()
+Pythia=()
 Evnts=()
 BeamEV1=()
 BeamEV2=()
@@ -182,8 +205,7 @@ Import_model=()
 NumberOfRuns=()
 
 #Adding a finish option to menu
-generate+=("finished")
-selections=("Add Processes" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Number of Runs" "Finished")
+selections=("Pythia" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Number of Runs" "Finished")
 
 #User interaction point
 read -p "Would you like to edit these processes? (y/n): " options
@@ -204,6 +226,10 @@ then
 		if [ "$process" == "finished" ]; 
 		then 
 			running="true" && break
+			unset Evnts
+			unset BeamEV1
+			unset BeamEV2
+			unset NumberOfRuns
 		fi
 
 		#Searching the generate array for index of process selected 
@@ -220,16 +246,15 @@ then
 		cd "$Wanted"
 		File=$(find . -name "run_card.dat" )
 		cd "$(dirname $File)/"
-	
+
 		#Creating a backup file from the run_card.dat	
 		echo "Creating a back up of run_data.dat"
 		mv run_card.dat run_card_original.dat	
 		cp run_card_original.dat run_card.dat
-
 		echo "Chose one of the options below"
 		while [ "$suboptions" == "incomplete" ];
 		do
-			echo -e "You have chosen; Process: \e[1;32m"$process"\e[0m, Additional Processes: \e[1;32m"${Additional_Process[@]}"\e[0m, Number of Events: \e[1;32m"$Evnts"\e[0m, Beam Energy, 1: \e[1;32m"$BeamEV1"\e[0m 2: \e[1;32m"$BeamEV2"\e[0m, Model: \e[1;32m"$Import_model"\e[0m, Number of Runs: \e[1;32m"$NumberOfRuns"\e[0m"  
+			echo -e "You have chosen; Process: \e[1;32m"$process"\e[0m""\e[0m, Number of Events: \e[1;32m"$Evnts"\e[0m, Beam Energy, 1: \e[1;32m"$BeamEV1"\e[0m 2: \e[1;32m"$BeamEV2"\e[0m, Model: \e[1;32m"$Import_model"\e[0m, Number of Runs: \e[1;32m"$NumberOfRuns"\e[0m"  
 			select category in "${selections[@]}";
 			do
 				[ -n "${category}" ] && break
@@ -241,35 +266,20 @@ then
 				suboptions="complete"
 			
 			#Enters Add Process 
-			elif [ "$category" == "Add Processes" ];
+			elif [ "$category" == "Pythia" ];
 			then 
-				read -p "Enter additional decays etc. (ending each with ';'): " decay
-				delimit=($(echo $decay | fold -w1))
-				Additional_Process=()
-				for x in ${delimit[@]};
-				do 	
-					if [[ "$x" = ";" ]];
-					then				
-						Additional_Process+=("$v") 
-						v=""
-					else	
-						v="$v$x"
-					fi
-				done 
-				echo "Added: ${Additional_Process[@]} to the simulation"
+				echo "To be Added"
 			
 			#Enters Number of Events 
 			elif [ "$category" == "Edit Number of Events" ];
 			then 		
 				unset i
-				unset Card
-				unset Name
-				unset Wanted	
+				unset Card	
 
 				#Changing the settings in the .dat file using the sed -i (interactive command)				
 				Card=run_card.dat
 				read -p "Enter the number of events which are to be generated: " Evnts
-				sed -i "s/ 10000	= nevents !/ "$Evnts"	= nevents !/g" $Card
+				sed -i "/nevents/c\ "$Evnts" = nevents ! Number of unweighted events requested" $Card
 
 			#Enters Edit Beam Energy
 			elif [ "$category" == "Edit Beam Energy" ];
@@ -298,13 +308,11 @@ then
 					then
 						unset i
 						unset Card
-						unset Name
-						unset Wanted
 	
 						#Changing the settings in the .dat file using the sed -i (interactive command)				
 						Card=run_card.dat
 						read -p "Enter the energy of Beam 1 (GeV): " BeamEV1
-						sed -i "s/6500.0	= ebeam1/"$BeamEV1"	= ebeam1/g" $Card
+						sed -i "/ebeam1/c\     "$BeamEV1"     = ebeam1  ! beam 1 total energy in GeV" $Card
 					#===========Beam 2===============
 					elif [[ "$object" == "Beam2" ]];
 					then 
@@ -317,7 +325,7 @@ then
 						#Changing the settings in the .dat file using the sed -i (interactive command)				
 						Card=run_card.dat
 						read -p "Enter the energy of Beam 2 (GeV): " BeamEV2
-						sed -i "s/6500.0	= ebeam2/"$BeamEV2"	= ebeam2/g" $Card
+						sed -i "/ebeam2/c\     "$BeamEV2"     = ebeam2  ! beam 2 total energy in GeV" $Card
 					fi
 				done
 			#Enters Model to Import
@@ -335,26 +343,3 @@ then
 
 	done
 fi 
-
-
-
-
-
-
-
-#echo "generate p p > t t~" >> mycmd
-
-
-
-#echo "generate p p > u u~" >> mycmd
-#echo "exit" >> mycmd
-
-#ipython "mg5_aMC" $directory/mycmd
-#Cleaning up!
-#rm mycmd
-
-
-
-
-
-
