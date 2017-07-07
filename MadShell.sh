@@ -164,7 +164,7 @@ fi
 echo "exit">>MadShell
 #============= Actually creating Directories ===================#
 echo "Generating the Files and directories by conducting a test run!"
-#python mg5_aMC MadShell
+python mg5_aMC MadShell
 rm MadShell
 
 #=======================removing variables=======================# 
@@ -202,16 +202,22 @@ Evnts=()
 BeamEV1=()
 BeamEV2=()
 Import_model=()
-NumberOfRuns=()
-
+NumberOfRuns=1
+BackedDir=()
+#Standard Settings for MadGraph5 
+Import_model="!" 
+Pythia="no"
+SimDetector="Off"
+Weight="no"
+MadSpin="no"
 #Adding a finish option to menu
-selections=("Pythia" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Number of Runs" "Finished")
+selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Number of Runs" "Finished")
 
 #User interaction point
 read -p "Would you like to edit these processes? (y/n): " options
 if [ "$options" == "y" ];
 then 
-
+generate+=("Finished")
 	#This level enables user to chose the process to edit 
 	running="false" #Keeping the loop running for the options menu
 	while [ "$running" == "false" ]; 
@@ -223,7 +229,7 @@ then
 		do
 			[ -n "${process}" ] && break
 		done
-		if [ "$process" == "finished" ]; 
+		if [ "$process" == "Finished" ]; 
 		then 
 			running="true" && break
 			unset Evnts
@@ -247,10 +253,6 @@ then
 		File=$(find . -name "run_card.dat" )
 		cd "$(dirname $File)/"
 
-		#Creating a backup file from the run_card.dat	
-		echo "Creating a back up of run_data.dat"
-		mv run_card.dat run_card_original.dat	
-		cp run_card_original.dat run_card.dat
 		echo "Chose one of the options below"
 		while [ "$suboptions" == "incomplete" ];
 		do
@@ -260,16 +262,118 @@ then
 				[ -n "${category}" ] && break
 			
 			done 
-			#Exits the submenu
+			#====================Exits the submenu====================#
 			if [ "$category" == "Finished" ];
 			then
+				#Writing a config file for MadGraph5 for these particular settings
+				#Used Variables: Pythia, SimDetector, MadSpin, Weight, Import_model , NumberOfRuns, Name
+				
+				for (( i=1; i <= $NumberOfRuns; i++))
+				do 	
+					if [[ "$Import_model" == "!" ]]; then
+						Nothing=""
+					else
+						first="import $Import_model" #Imports models
+						echo "$first" >> MadShell     
+					fi
+					
+					second="launch $Name"	      #Launches the output name generated from the start
+					echo "$second" >> MadShell
+					echo "$i"
+					if [[ "$Pythia" == "yes" ]]; then
+						if [[ "$SimDetector" == "PGS" ]]; then 
+							echo "2" >> MadShell
+						elif [[ "$SimDetector" == "Delphes" ]]; then
+							echo "2" >> MadShell
+							echo "2" >> MadShell
+						elif [[ "$SimDetector" == "Off" ]]; then
+							echo "1" >> MadShell
+						fi
+					
+					elif [[ "$Pythia" == "no" ]]; then 
+						continue 
+					fi
+				
+					if [[ "$MadSpin" == "yes" ]]; then
+						echo "4" >> MadShell
+					elif [[ "$MadSpin" == "no" ]]; then 
+						continue
+					fi
+	
+					if [[ "$Weight" == "yes" ]]; then
+						echo "5" >> MadShell
+					elif [[ "$Weight" == "no" ]]; then 
+						continue					
+					fi
+					echo "done" >> MadShell
+					echo "done" >> MadShell
+				done
 				suboptions="complete"
 			
-			#Enters Add Process 
-			elif [ "$category" == "Pythia" ];
-			then 
-				echo "To be Added"
-			
+			#Enters Pythia/Detector settings
+			elif [ "$category" == "Pythia/Detector" ];
+			then 	
+				Launching=("Shower/Hadronization" "Detector Simulation" "Decay with MadSpin" "Add weights to events for different model hypothesis" "Back")
+				PythiaDetector="True"
+				while [[ "$PythiaDetector" == "True" ]]; 
+				do
+					select Sim in "${Launching[@]}";
+					do
+						[ -n "${Sim}" ] && break
+					done 		
+					if [[ "$Sim" == "Shower/Hadronization" ]];
+					then 
+						read -p "Enable Showering/Hadronization using Pythia6? (y/n) " SimPy
+						if [[ "$SimPy" == "y" ]]; then
+							Pythia="yes"
+						elif [[ "$SimPy" == "n" ]]; then
+							Pythia="no"
+						fi
+					elif [[ "$Sim" == "Detector Simulation" ]];
+					then 
+						echo "By enabling detector simulations you also activate Pythia!"
+						Detec=("PGS" "Delphes" "Off")
+						select DetecSim in "${Detec[@]}";
+						do
+							[ -n "${DetecSim}" ] && break
+						done 		
+						if [[ "$DetecSim" == "PGS" ]]; then
+							Pythia="yes"
+							SimDetector="PGS"
+						elif [[ "$DetecSim" == "Off" ]]; then
+							Pythia="no"
+						elif [[ "$DetecSim" == "Delphes" ]]; then
+							Pythia="yes"
+							SimDetector="Delphes"
+						fi
+					elif [[ "$Sim" == "Decay with MadSpin" ]];
+					then 
+						read -p "Decay with MadSpin? (y/n) " MadAns
+						if [[ "$MadAns" == "y" ]]; then
+							MadSpin="yes"
+						elif [[ "$MadAns" == "n" ]]; then
+							MadSpin="no"
+						fi
+	
+					elif [[ "$Sim" == "Add weights to events for different model hypothesis" ]];
+					then 
+						read -p "Add Weights? (y/n) " WeighANS
+						if [[ "$WeighANS" == "y" ]]; then
+							Weight="yes"
+						elif [[ "$WeighANS" == "n" ]]; then
+							Weight="no"
+						fi
+					elif [[ "$Sim" == "Back" ]];
+					then
+						echo "Weight: $Weight MadSpin: $MadSpin Detector: $SimDetector Pythia: $Pythia"
+						sleep 3
+						PythiaDetector="false"
+					fi
+				done
+
+
+
+
 			#Enters Number of Events 
 			elif [ "$category" == "Edit Number of Events" ];
 			then 		
@@ -342,4 +446,15 @@ then
 		done
 
 	done
+else 
+	cd $directory
+	for name in "${Names[@]}";
+	do			
+		second="launch $name"	      #Launches the output name generated from the start
+		echo "$second" >> MadShell
+		echo "done" >> MadShell
+		echo "done" >> MadShell
+	done		
 fi 
+			
+python mg5_aMC MadShell
