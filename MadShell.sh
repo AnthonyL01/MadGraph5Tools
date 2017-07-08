@@ -210,6 +210,7 @@ Pythia="no"
 SimDetector="Off"
 Weight="no"
 MadSpin="no"
+
 #Adding a finish option to menu
 selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Number of Runs" "Finished")
 
@@ -230,12 +231,28 @@ generate+=("Finished")
 			[ -n "${process}" ] && break
 		done
 		if [ "$process" == "Finished" ]; 
-		then 
-			running="true" && break
+		then 	
+			for name in "${Names[@]}";
+			do			
+				place=$directory$name/Cards/MadShell	
+				if [[ -f "$place" ]];			
+				then			
+					continue
+				else	
+					cd $directory$name/Cards/				
+					second="launch $name"	      #Launches the output name generated from the start
+					echo "$second" >> MadShell
+					echo "done" >> MadShell
+					echo "done" >> MadShell
+					cd $directory
+				fi
+				
+			done	
 			unset Evnts
 			unset BeamEV1
 			unset BeamEV2
 			unset NumberOfRuns
+			running="true" && break	
 		fi
 
 		#Searching the generate array for index of process selected 
@@ -270,6 +287,7 @@ generate+=("Finished")
 				
 				for (( i=1; i <= $NumberOfRuns; i++))
 				do 	
+					rm MadShell #This removes any existing MadShell settings file.
 					if [[ "$Import_model" == "!" ]]; then
 						Nothing=""
 					else
@@ -279,7 +297,6 @@ generate+=("Finished")
 					
 					second="launch $Name"	      #Launches the output name generated from the start
 					echo "$second" >> MadShell
-					echo "$i"
 					if [[ "$Pythia" == "yes" ]]; then
 						if [[ "$SimDetector" == "PGS" ]]; then 
 							echo "2" >> MadShell
@@ -308,6 +325,7 @@ generate+=("Finished")
 					echo "done" >> MadShell
 					echo "done" >> MadShell
 				done
+				echo "exit" >> MadShell
 				suboptions="complete"
 			
 			#Enters Pythia/Detector settings
@@ -446,7 +464,7 @@ generate+=("Finished")
 		done
 
 	done
-else 
+elif [[ "$options" == "n" ]]; then 
 	cd $directory
 	for name in "${Names[@]}";
 	do			
@@ -454,7 +472,20 @@ else
 		echo "$second" >> MadShell
 		echo "done" >> MadShell
 		echo "done" >> MadShell
-	done		
+	done	
+	python mg5_aMC MadShell	
 fi 
-			
-python mg5_aMC MadShell
+
+#This will be the method used to execute the saved MadShell file for each directory in names 
+if [[ "$options" == "y" ]];
+then 
+	cd $directory
+	File=$(find $directory -name "MadShell" )
+	for path in "${File[@]}";
+	do 
+		#python mg5_aMC "$path"
+		echo "$path"
+		echo "Time: $(date)"
+		wait
+	done
+fi
