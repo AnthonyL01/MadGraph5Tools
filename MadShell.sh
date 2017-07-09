@@ -27,7 +27,8 @@ continue="no"
 while [ "no" == $continue ];
 do
 	#_____________Process to run__________________________________#
-	read -p "Enter the processes to be generated (ending with ';'): " input
+#	read -p "Enter the processes to be generated (ending with ';'): " input	<--------------Activate later ########################################
+	input="p p > t t~; p p > u u~;"
 	splitter=($(echo $input | fold -w1))
 	generate=()
 	for i in ${splitter[@]};
@@ -64,7 +65,8 @@ do
 	unset splitter
 	
 	#_____________Giving names to each run___________________________
-	read -p "Enter the name of output (ending with ';'): " names
+#	read -p "Enter the name of output (ending with ';'): " names	<--------------Activate later#############################################
+	names="Test1; Test2;"
 	splitter=($(echo $names | fold -w1))
 	Names=()
 	for i in ${splitter[@]};
@@ -91,80 +93,123 @@ do
 		echo -e "\e[1;31m Please give for each process a name! \e[0m"
 	fi	
 done
-
+generate+=("Finished")
 #==========Menu for adding in subprocesses=============# 
 read -p "Would you like to add a sub process? (y/n) " answer
 if [[ "$answer" == "y" ]]; 
 then 
 	echo "Please select one of the following:"
-	generate+=("finished")
 	continue="false"
 	while [[ "$continue" == "false" ]]; do
 		select add in "${generate[@]}";
 		do
 				[ -n ${add} ] && break
 		done
-		#_______________Finding index of add in generate____________________#
-		for i in "${!generate[@]}";
-		do
-			if [[ "${generate[$i]}" == "${add}" ]];
-			then
-				front=${coding[$i]}
-				NameOfOutput=${Names[$i]}
-			fi
-		done
 		#__________________Exiting___________________________________________#
-		if [[ "$add" == "finished" ]];
+		if [[ "$add" == "Finished" ]];
 		then
-			break
-		fi		
-		echo "You have selected $add"
-		read -p "Enter the subprocess to be added (ending with ';'): " Subinput
-		#______________Storing and Confirming________________________#
-		subcode=($(echo $Subinput | sed -e "s/;/#/g" | sed -e "s/ /!/g" | fold -w1))
-		subprocess=()
-		for decode in ${subcode[@]};
-		do 	
-			if [[ "$decode" = "#" ]];
-			then				
-				subprocess+=("$temp") 
-				temp=""
-			else	
-				temp="$temp$decode"
+			for i in "${!generate[@]}";
+			do
+				if [[ "${generate[$i]}" == "Finished" ]]; 
+				then
+					continue	
+				else
+					NameOfOutput=${Names[$i]}
+					#__________This is to make sure there is a MadShell File____#
+					place="$(dirname $dir)/$NameOfOutput.MadShell"
+					if [[ -f "$place" ]];
+					then
+						cat $place >> MadShell #<---- if the file is there continue 
+						rm $place
+					else				
+						front="generate ${coding[$i]}"
+						echo  $front | tr "!" " ">>$NameOfOutput.MadShell
+						NameOfOutput=${Names[$i]}
+						echo "output $NameOfOutput">>$NameOfOutput.MadShell 
+						cat $place >> MadShell
+						rm $place
+					fi
+				fi	
+			done
+			continue="true"
+			continue
+		else
+			#_______________Finding index of add in generate____________________#
+			for i in "${!generate[@]}";
+			do
+				if [[ "${generate[$i]}" == "${add}" ]];
+				then
+					front=${coding[$i]}
+					NameOfOutput=${Names[$i]}
+				fi
+			done
+			echo "You have selected $add"	
+			read -p "Enter the subprocess to be added (ending with ';'): " Subinput
+			#______________Storing and Confirming________________________#
+			subcode=($(echo $Subinput | sed -e "s/;/#/g" | sed -e "s/ /!/g" | fold -w1))
+			subprocess=()
+			for decode in ${subcode[@]};
+			do 	
+				if [[ "$decode" = "#" ]];
+				then				
+					subprocess+=("$temp") 
+					temp=""
+				else	
+					temp="$temp$decode"
+				fi
+			done 
+			Message="You have added: \e[1;32m${subprocess[@]}\e[0m to $add"
+			echo -e ${Message[@]} | tr "!" " " 
+			unset decode 	#Clearing variable
+			unset Subinput	#Clearing variable 
+			unset subcode	#Clearing variable
+			unset temp	#Clearing variable
+			unset Message	#Clearing variable
+		
+			#=======Generating the MadShell config===================#
+			place="$(dirname $dir)/$NameOfOutput.MadShell"
+			if [[ -f "$place" ]];
+			then
+				rm $NameOfOutput.MadShell #This removes existing file 
+				MG5Gen="generate $front" #This is the instruction to generate process.
+				echo $MG5Gen | tr "!" " ">>$NameOfOutput.MadShell #Creates the file
+				for subcode in "${subprocess[@]}";
+				do
+					Message="add process $subcode"
+					echo $Message | tr "!" " ">>$NameOfOutput.MadShell    #Creates the file
+				done
+				echo "output $NameOfOutput">>$NameOfOutput.MadShell        #Creates the file 				
+			else
+				MG5Gen="generate $front" #This is the instruction to generate process.
+				echo $MG5Gen | tr "!" " ">>$NameOfOutput.MadShell #Creates the file
+				for subcode in "${subprocess[@]}";
+				do
+					Message="add process $subcode"
+					echo $Message | tr "!" " ">>$NameOfOutput.MadShell    #Creates the file
+				done
+				echo "output $NameOfOutput">>$NameOfOutput.MadShell        #Creates the file 
 			fi
-		done 
-		Message="You have added: \e[1;32m${subprocess[@]}\e[0m to $add"
-		echo -e ${Message[@]} | tr "!" " " 
-		unset decode 	#Clearing variable
-		unset Subinput	#Clearing variable 
-		unset subcode	#Clearing variable
-		unset temp	#Clearing variable
-		unset Message	#Clearing variable
-	
-		#=======Generating the MadShell config===================#
-		MG5Gen="generate $front" #This is the instruction to generate process.
-		echo $MG5Gen | tr "!" " " >> MadShell #Creates the file
-		for subcode in "${subprocess[@]}";
-		do
-			Message="add process $subcode"
-			echo $Message | tr "!" " " >> MadShell	#Creates the file
-		done
-		echo "output $NameOfOutput" >> MadShell #Creates the file
+		fi
 	done
 elif [[ "$answer" == "n" ]];
 then
 	for i in "${!generate[@]}";
 	do
-		front="generate ${coding[$i]}"
-		echo  $front | tr "!" " ">>MadShell
-		NameOfOutput=${Names[$i]}
-		echo "output $NameOfOutput">>MadShell
+		if [[ "${generate[$i]}" == "Finished" ]]; 
+		then
+			continue	
+		else 
+			front="generate ${coding[$i]}"
+			echo  $front | tr "!" " ">>MadShell
+			NameOfOutput=${Names[$i]}
+			echo "output $NameOfOutput">>MadShell
+		fi
 	done
 fi
 echo "exit">>MadShell
 #============= Actually creating Directories ===================#
 echo "Generating the Files and directories by conducting a test run!"
-python mg5_aMC MadShell
+python mg5_aMC MadShell > /dev/null 2>&1
 rm MadShell
 
 #=======================removing variables=======================# 
@@ -201,9 +246,7 @@ Pythia=()
 Evnts=()
 BeamEV1=()
 BeamEV2=()
-Import_model=()
 NumberOfRuns=1
-BackedDir=()
 #Standard Settings for MadGraph5 
 Import_model="!" 
 Pythia="no"
@@ -218,7 +261,6 @@ selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Model 
 read -p "Would you like to edit these processes? (y/n): " options
 if [ "$options" == "y" ];
 then 
-generate+=("Finished")
 	#This level enables user to chose the process to edit 
 	running="false" #Keeping the loop running for the options menu
 	while [ "$running" == "false" ]; 
@@ -284,10 +326,9 @@ generate+=("Finished")
 			then
 				#Writing a config file for MadGraph5 for these particular settings
 				#Used Variables: Pythia, SimDetector, MadSpin, Weight, Import_model , NumberOfRuns, Name
-				
+				rm MadShell #This removes any existing MadShell settings file.
 				for (( i=1; i <= $NumberOfRuns; i++))
 				do 	
-					rm MadShell #This removes any existing MadShell settings file.
 					if [[ "$Import_model" == "!" ]]; then
 						Nothing=""
 					else
@@ -306,26 +347,31 @@ generate+=("Finished")
 						elif [[ "$SimDetector" == "Off" ]]; then
 							echo "1" >> MadShell
 						fi
-					
-					elif [[ "$Pythia" == "no" ]]; then 
-						continue 
 					fi
 				
 					if [[ "$MadSpin" == "yes" ]]; then
 						echo "4" >> MadShell
-					elif [[ "$MadSpin" == "no" ]]; then 
-						continue
 					fi
 	
 					if [[ "$Weight" == "yes" ]]; then
-						echo "5" >> MadShell
-					elif [[ "$Weight" == "no" ]]; then 
-						continue					
+						echo "5" >> MadShell				
 					fi
+
 					echo "done" >> MadShell
 					echo "done" >> MadShell
 				done
 				echo "exit" >> MadShell
+				unset Pythia
+				unset MadSpin
+				unset Weight
+				unset Import_model
+				unset SimDetector
+				#Standard Settings for MadGraph5 
+				Import_model="!" 
+				Pythia="no"
+				SimDetector="Off"
+				Weight="no"
+				MadSpin="no"
 				suboptions="complete"
 			
 			#Enters Pythia/Detector settings
@@ -473,19 +519,64 @@ elif [[ "$options" == "n" ]]; then
 		echo "done" >> MadShell
 		echo "done" >> MadShell
 	done	
-	python mg5_aMC MadShell	
+	python mg5_aMC MadShell > /dev/null 2>&1
+	rm MadShell	
 fi 
 
 #This will be the method used to execute the saved MadShell file for each directory in names 
 if [[ "$options" == "y" ]];
 then 
+	#Finding the number of MadShell Files
 	cd $directory
-	File=$(find $directory -name "MadShell" )
-	for path in "${File[@]}";
+	File=($(find $directory -name "MadShell" ))
+
+	#______Collects number of total runs and shortens the MadShell file__________#
+	for total in "${!File[@]}";
+	do
+		Temp="$(dirname ${File[$total]})/MadShell_temp"
+		MadShell=${File[$total]}
+		n=($(grep -o "launch" $MadShell | wc -l)) #<----collects the number of runs
+		TotalRuns+=("$n")
+
+		#Shortening the MadShell 
+		cat $MadShell | while read line 
+		do 			
+			if [[ $t -le 1 ]];
+			then
+				if  [[ "$line" == "done"* ]];
+				then
+					t=$((t+1))	
+				fi
+				echo "$line" >> $Temp
+			fi
+		done
+		t=0
+		echo "exit" >> $Temp
+		rm $MadShell 
+		mv $Temp $MadShell
+	done
+	echo "${TotalRuns[@]}"
+
+
+	#The execution loop!!!!
+	for i in "${!File[@]}";
 	do 
-		#python mg5_aMC "$path"
-		echo "$path"
+		echo "Starting runs in ${Names[$i]}"
+		number=${TotalRuns[$i]}
+		echo "Total Runs for this session: $number"
+		for (( x=1; x <= $number; x++));
+		do
+			#This executes the loops
+			path=${File[$i]}
+			python mg5_aMC "$path" > /dev/null 2>&1
+			sleep 1
+	
+			#This is for the progress bar!!!##########
+			percent=$((x*100 / number))			
+			echo -ne "progress: $percent \r"
+		done
+		#This is the Total runs collected!!!
+		echo "completed $number runs for ${Names[$i]}"
 		echo "Time: $(date)"
-		wait
 	done
 fi
