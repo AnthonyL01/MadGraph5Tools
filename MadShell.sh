@@ -28,8 +28,7 @@ continue="no"
 while [ "no" == $continue ];
 do
 	#_____________Process to run__________________________________#
-#	read -p "Enter the processes to be generated (ending with ';'): " input	<--------------Activate later ########################################
-	input="p p > t t~;"
+	read -p "Enter the processes to be generated (ending with ';'): " input
 	splitter=($(echo $input | fold -w1))
 	generate=()
 	for i in ${splitter[@]};
@@ -66,8 +65,7 @@ do
 	unset splitter
 	
 	#_____________Giving names to each run___________________________
-#	read -p "Enter the name of output (ending with ';'): " names	<--------------Activate later#############################################
-	names="Test1;"
+	read -p "Enter the name of output (ending with ';'): " names
 	splitter=($(echo $names | fold -w1))
 	Names=()
 	for i in ${splitter[@]};
@@ -599,5 +597,8 @@ then
 		#This is the Total runs collected!!!
 		echo "completed $number runs for ${Names[$i]}"
 		echo "Time: $(date)"
+		
+		#Clean Up
+		rm $path
 	done
 fi
