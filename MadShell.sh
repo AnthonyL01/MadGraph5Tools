@@ -121,6 +121,7 @@ then
 					if [[ -f "$place" ]];
 					then
 						cat $place >> MadShell #<---- if the file is there continue 
+						echo "exit" >> MadShell
 						rm $place
 					else				
 						front="generate ${coding[$i]}"
@@ -128,6 +129,7 @@ then
 						NameOfOutput=${Names[$i]}
 						echo "output $NameOfOutput">>$NameOfOutput.MadShell 
 						cat $place >> MadShell
+						echo "exit" >> MadShell
 						rm $place
 					fi
 				fi	
@@ -204,10 +206,10 @@ then
 			echo  $front | tr "!" " ">>MadShell
 			NameOfOutput=${Names[$i]}
 			echo "output $NameOfOutput">>MadShell
+			echo "exit" >> MadShell
 		fi
 	done
 fi
-echo "exit">>MadShell
 #============= Actually creating Directories ===================#
 echo "Generating the Files and directories!"
 python mg5_aMC MadShell > /dev/null 2>&1
