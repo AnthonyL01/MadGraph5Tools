@@ -19,6 +19,8 @@ done
 directory="$(dirname $dir)/"
 cd $directory
 
+#Removing any existing files
+rm -r */
 #============We now generate the config file for MadGraph 5:======================#
 echo "Entering Configuration Mode:"
 
@@ -252,9 +254,10 @@ Pythia="no"
 SimDetector="Off"
 Weight="no"
 MadSpin="no"
+extraction="no"
 
 #Adding a finish option to menu
-selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Number of Runs" "Finished")
+selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Number of Runs" "Les Houches Format" "Finished")
 
 #User interaction point
 read -p "Would you like to edit these processes? (y/n): " options
@@ -285,6 +288,7 @@ then
 					echo "$second" >> MadShell
 					echo "done" >> MadShell
 					echo "done" >> MadShell
+					echo "no" >> Extract
 					cd $directory
 				fi
 				
@@ -293,6 +297,7 @@ then
 			unset BeamEV1
 			unset BeamEV2
 			unset NumberOfRuns
+			extraction="no"
 			running="true" && break	
 		fi
 
@@ -314,7 +319,7 @@ then
 		echo "Chose one of the options below"
 		while [ "$suboptions" == "incomplete" ];
 		do
-			echo -e "You have chosen; Process: \e[1;32m"$process"\e[0m""\e[0m, Number of Events: \e[1;32m"$Evnts"\e[0m, Beam Energy, 1: \e[1;32m"$BeamEV1"\e[0m 2: \e[1;32m"$BeamEV2"\e[0m, Model: \e[1;32m"$Import_model"\e[0m, Number of Runs: \e[1;32m"$NumberOfRuns"\e[0m"  
+			echo -e "You have chosen; Process: \e[1;32m"$process"\e[0m" "Name: \e[1;32m"$Name"\e[0m" ", Number of Events: \e[1;32m"$Evnts"\e[0m, Beam Energy, 1: \e[1;32m"$BeamEV1"\e[0m 2: \e[1;32m"$BeamEV2"\e[0m, Model: \e[1;32m"$Import_model"\e[0m, Number of Runs: \e[1;32m"$NumberOfRuns"\e[0m""\e[0m, Les Houches Format extraction: \e[1;32m"$extraction"\e[0m"  
 			select category in "${selections[@]}";
 			do
 				[ -n "${category}" ] && break
@@ -506,6 +511,20 @@ then
 			elif [ "$category" == "Number of Runs" ];
 			then 
 				read -p "How many runs would you like to conduct? " NumberOfRuns
+		
+			#Extraction of LHE files in the run folders
+			elif [ "$category" == "Les Houches Format" ];
+			then 
+				read -p "Would you like to extract the .lhe files in the run folders? (y/n) " extract
+				if [ "$extract" == "n" ];
+				then
+					extraction="no" 
+					echo "$extraction" >> Extract
+				elif [ "$extract" == "y" ];
+				then
+					extraction="yes" >> Extract
+					echo "$extraction" >> Extract
+				fi
 			fi
 		done
 
@@ -530,12 +549,15 @@ then
 	#Finding the number of MadShell Files
 	cd $directory
 	File=($(find $directory -name "MadShell" ))
+	Ext=($(find $directory -name "Extract" )) #<----Extraction file
+
 
 	#______Collects number of total runs and shortens the MadShell file__________#
 	for total in "${!File[@]}";
 	do
 		Temp="$(dirname ${File[$total]})/MadShell_temp"
 		MadShell=${File[$total]}
+		LesExt=${Ext[$total]}
 		n=($(grep -o "launch" $MadShell | wc -l)) #<----collects the number of runs
 		TotalRuns+=("$n")  
 
@@ -595,10 +617,38 @@ then
 			echo -ne "progress: $exact $percent % \r"
 		done
 		#This is the Total runs collected!!!
-		echo "completed $number runs for ${Names[$i]}"
+		echo "completed $number runs for $newname"
 		echo "Time: $(date)"
+		
+		#=====================Using ReadingEvents.py==========================#
+		echo "Extracting Les Houches Format"
+		Les=${Ext[$i]}
+		decision=($(grep -o "no" $Les | wc -l))
+		if [[ "$decision" == "1" ]]; 
+		then
+			echo "no"
+		elif [[ "$decision" == "0" ]];
+		then 
+			for (( python=1; python <= $number; python++)); 
+			do
+				t="$directory$newname/Events/run_$python/unweighted_events.lhe.gz"
+				z="$directory$newname/Events/run_$python/unweighted_events.gz"		
+				if [[ $python < 10 ]];
+				then
+					t="$directory$newname/Events/run_0$python/unweighted_events.lhe.gz"
+					z="$directory$newname/Events/run_0$python/unweighted_events.gz"
+				fi
+				mv $t $z
+				gzip -d "$z" 
+				Reading="$directory$newname/Events/run_0$python/unweighted_events"
+				ReadingDirec=$(find ~/ -name "ReadingEvents.py" )
+				python "$ReadingDirec" "$Reading"
+			done
+		fi	
+		#===================================================================#
 		
 		#Clean Up
 		rm $path
+		rm $Les
 	done
 fi
