@@ -4,6 +4,7 @@
 #This shell script is used to run MadGraph 5 commands and events:
 #==========================Setting the directory of MadGraph 5=========================#
 
+echo -e "\e[1;34m Welcome to MadShell! By Thomas Nommensen\e[0m"
 #Finding the directories which have MadGraph 5
 MadGraph=($(find ~/ -name "mg5_aMC" ))
 
@@ -28,7 +29,7 @@ while [ "no" == $continue ];
 do
 	#_____________Process to run__________________________________#
 #	read -p "Enter the processes to be generated (ending with ';'): " input	<--------------Activate later ########################################
-	input="p p > t t~; p p > u u~;"
+	input="p p > t t~;"
 	splitter=($(echo $input | fold -w1))
 	generate=()
 	for i in ${splitter[@]};
@@ -66,7 +67,7 @@ do
 	
 	#_____________Giving names to each run___________________________
 #	read -p "Enter the name of output (ending with ';'): " names	<--------------Activate later#############################################
-	names="Test1; Test2;"
+	names="Test1;"
 	splitter=($(echo $names | fold -w1))
 	Names=()
 	for i in ${splitter[@]};
@@ -208,7 +209,7 @@ then
 fi
 echo "exit">>MadShell
 #============= Actually creating Directories ===================#
-echo "Generating the Files and directories by conducting a test run!"
+echo "Generating the Files and directories!"
 python mg5_aMC MadShell > /dev/null 2>&1
 rm MadShell
 
@@ -267,7 +268,7 @@ then
 	do 
 		#Submenu with selections options 
 		suboptions="incomplete"
-		echo "Chose the process which you would like to edit:"
+		echo "Chose the process which you would like to edit: "
 		select process in "${generate[@]}";
 		do
 			[ -n "${process}" ] && break
@@ -366,6 +367,7 @@ then
 				unset Weight
 				unset Import_model
 				unset SimDetector
+				NumberOfRuns=1
 				#Standard Settings for MadGraph5 
 				Import_model="!" 
 				Pythia="no"
@@ -523,6 +525,7 @@ elif [[ "$options" == "n" ]]; then
 	rm MadShell	
 fi 
 
+
 #This will be the method used to execute the saved MadShell file for each directory in names 
 if [[ "$options" == "y" ]];
 then 
@@ -536,7 +539,7 @@ then
 		Temp="$(dirname ${File[$total]})/MadShell_temp"
 		MadShell=${File[$total]}
 		n=($(grep -o "launch" $MadShell | wc -l)) #<----collects the number of runs
-		TotalRuns+=("$n")
+		TotalRuns+=("$n")  
 
 		#Shortening the MadShell 
 		cat $MadShell | while read line 
@@ -561,7 +564,17 @@ then
 	#The execution loop!!!!
 	for i in "${!File[@]}";
 	do 
-		echo "Starting runs in ${Names[$i]}"
+		#===============This is to solve the misname bug========
+		for find in "${!File[@]}"; 
+		do 
+			if [[ "${File[$i]}" == *"${Names[$find]}"* ]];
+			then 
+				newname=${Names[$find]}
+			fi
+
+		done
+		#========= $newname is the actual runs name ============
+		echo "Starting runs in $newname"
 		number=${TotalRuns[$i]}
 		echo "Total Runs for this session: $number"
 		for (( x=1; x <= $number; x++));
@@ -569,11 +582,19 @@ then
 			#This executes the loops
 			path=${File[$i]}
 			python mg5_aMC "$path" > /dev/null 2>&1
-			sleep 1
-	
+
 			#This is for the progress bar!!!##########
+			unset exact
+			unset prop
 			percent=$((x*100 / number))			
-			echo -ne "progress: $percent \r"
+			per=$((percent/5))
+			for (( progress=0; progress <= $per; progress++));
+			do 
+				increment="="
+				prop="$increment$prop"
+				exact="$prop>"	
+			done
+			echo -ne "progress: $exact $percent % \r"
 		done
 		#This is the Total runs collected!!!
 		echo "completed $number runs for ${Names[$i]}"
