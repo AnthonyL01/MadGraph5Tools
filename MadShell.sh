@@ -365,6 +365,7 @@ then
 
 					echo "done" >> MadShell
 					echo "done" >> MadShell
+					echo "$extraction" >> Extract
 				done
 				echo "exit" >> MadShell
 				unset Pythia
@@ -380,6 +381,7 @@ then
 				Weight="no"
 				MadSpin="no"
 				suboptions="complete"
+				extraction="no"
 			
 			#Enters Pythia/Detector settings
 			elif [ "$category" == "Pythia/Detector" ];
@@ -521,11 +523,9 @@ then
 				if [ "$extract" == "n" ];
 				then
 					extraction="no" 
-					echo "$extraction" >> Extract
 				elif [ "$extract" == "y" ];
 				then
-					extraction="yes" >> Extract
-					echo "$extraction" >> Extract
+					extraction="yes"
 				fi
 			fi
 		done
@@ -580,8 +580,6 @@ then
 		rm $MadShell 
 		mv $Temp $MadShell
 	done
-	echo "${TotalRuns[@]}"
-
 
 	#The execution loop!!!!
 	for i in "${!File[@]}";
@@ -631,18 +629,26 @@ then
 			echo "no"
 		elif [[ "$decision" == "0" ]];
 		then 
-			for (( python=1; python <= $number; python++)); 
-			do
-				t="$directory$newname/Events/run_$python/unweighted_events.lhe.gz"
-				z="$directory$newname/Events/run_$python/unweighted_events.gz"		
-				if [[ $python < 10 ]];
+			for (( y=1; y <= $number; y++ )); 
+			do	
+				if [[ $y -lt 10 ]];
 				then
-					t="$directory$newname/Events/run_0$python/unweighted_events.lhe.gz"
-					z="$directory$newname/Events/run_0$python/unweighted_events.gz"
+					t="$directory$newname/Events/run_0$y/unweighted_events.lhe.gz"
+					z="$directory$newname/Events/run_0$y/unweighted_events.gz"
+					mv $t $z
+					gzip -d "$z" 
+					echo "$python"
+					Reading="$directory$newname/Events/run_0$y/unweighted_events"
+				elif [[ $y -ge 10 ]];
+				then
+					t="$directory$newname/Events/run_$y/unweighted_events.lhe.gz"
+					z="$directory$newname/Events/run_$y/unweighted_events.gz"	
+					Reading="$directory$newname/Events/run_$y/unweighted_events"
+					mv $t $z
+					gzip -d "$z" 
+					echo "$y"
 				fi
-				mv $t $z
-				gzip -d "$z" 
-				Reading="$directory$newname/Events/run_0$python/unweighted_events"
+				echo "$Reading"
 				ReadingDirec=$(find ~/ -name "ReadingEvents.py" )
 				python "$ReadingDirec" "$Reading"
 			done
