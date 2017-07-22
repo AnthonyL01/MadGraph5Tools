@@ -98,14 +98,14 @@ Output=[]
 i = 0
 IndexE = 0
 IndexM = 0
-directory = str(sys.argv[1])
+directory = str(sys.argv[1]) 
 with open(directory) as File:
 	for line in File:			
 		i = i + 1
 		if "<event>" in line:
 			IndexE = i
 			
-		if "<mgrwt>" in line:
+		if "</event>" in line:
 			IndexM = i
 		a = IndexE - IndexM
 		if a > 0:			
@@ -161,19 +161,18 @@ for i in range(len(Column_Data)):
 		name = PDGRename(PDGCode) #See at the start of file... its a function 
 		ReFormatedData = [run,states,name,spin,px,py,pz] 
 		Output.append(ReFormatedData) #Saving the output 
-print(Output)
+#print(Output)
 print("Finished Organizing")
 #=================Extracting User Readable Information==================================
 # Above_Column_Data 
+NumberOfParticles=[]
+CrossSection = []
+Energy = []
+Alpha = []
 for i in range(len(Above_Column_Data)):
 	Global = Above_Column_Data[i]
-	NumberOfParticles = Global[0:1]
-	CrossSection = Global[2:3]
-	Energy = Global[3:4]
-	Alpha = Global[4:6]
-
-print("The number of particles are " +str(NumberOfParticles).strip("[]") +". The energy is "
-+str(Energy).strip("[]")+" GeV")
-print("Statistical Data: Cross Section,"+ str(CrossSection).strip("[]")+" pb" ", Alpha and Alphas " + str(Alpha).strip("[]"))
-
-
+	NumberOfParticles.append(Global[0:1])
+	CrossSection.append(Global[2:3])
+	Energy.append(Global[3:4])
+	Alpha.append(Global[4:6])
+print(NumberOfParticles)
