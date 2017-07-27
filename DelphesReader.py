@@ -33,8 +33,8 @@ def TreeLeaves ( directory, TreeName, LeafName):
 ############Program Start##########################
 
 #============Future Input agruments===============#
-#directory1 = str(sys.argv[1]) 
-directory1= str("MadGraph5/bin/pp/Events/run_01/tag_1_delphes_events.root")
+directory1 = str(sys.argv[1]) 
+#directory1= str("MadGraph5/bin/pp/Events/run_01/tag_1_delphes_events.root")
 TreeNames = "Delphes"
 BranchName = "MissingET"
 LeafNamey = "Jet_size"
