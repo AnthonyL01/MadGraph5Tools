@@ -161,7 +161,6 @@ for i in range(len(Column_Data)):
 		name = PDGRename(PDGCode) #See at the start of file... its a function 
 		ReFormatedData = [run,states,name,spin,px,py,pz] 
 		Output.append(ReFormatedData) #Saving the output 
-#print(Output)
 print("Finished Organizing")
 #=================Extracting User Readable Information==================================
 # Above_Column_Data 
@@ -175,4 +174,5 @@ for i in range(len(Above_Column_Data)):
 	CrossSection.append(Global[2:3])
 	Energy.append(Global[3:4])
 	Alpha.append(Global[4:6])
-print(NumberOfParticles)
+
+#================Writing the new sorted file=============================
