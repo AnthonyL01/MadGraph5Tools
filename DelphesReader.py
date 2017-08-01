@@ -1,6 +1,9 @@
 import ROOT
 import sys
+import collections 
+
 #============Functions================#
+
 #================ Extracting Data from Delphes root =====================#
 def RootReading ( directory, TreeName , Branch, LeafName ):
 	LeafValues = []
@@ -30,45 +33,80 @@ def TreeLeaves ( directory, TreeName, LeafName):
 	return LeafValues
 #===========End Delphes Tree =====================#
 
+#=========== Validation and Signal Regions =======#
+def Region ( MissingET, NumberOfJets, GreEqu ):
+	Output = collections.namedtuple("Output",["SRET" , "SRJTS", "VRET", "VRJTS"])
+	SRMissingET = []
+	SRJets = []
+	VRMissingET = []
+	VRJets = []
+	length = len(MissingET)
+	for i in range(length):	
+		cut = MissingET[i]
+		jets = NumberOfJets[i]
+		if ( cut < GreEqu ): # <---- Signal Region
+			SRMissingET.append(cut)
+			SRJets.append(jets)
+		if ( cut >= GreEqu ): # <------ Validation Region
+			VRMissingET.append(cut)
+			VRJets.append(jets)	
+	return Output(SRMissingET, SRJets, VRMissingET, VRJets )
+#======= End Validation and Signal Regions ========#
+
+#=========== Histograms ===========================#
+def HistoGrams ( Region, Process, Jets, SaveHistROOT ):
+	f = ROOT.TFile(SaveHistROOT,"UPDATE")
+	StringOfName = "h" + Process +"Nom_" + Region + "_obs_njets"
+	max_size = int(max(Jets))
+	min_size = int(min(Jets))
+	delta = max_size - min_size
+	lengthy = len(Jets)
+	#_______First Historgam__________#
+	h1 = ROOT.TH1F(StringOfName,StringOfName,delta,min_size,max_size)
+	for i in range(lengthy):
+		temp = Jets[i]
+		h1.Fill(temp)
+
+	#_____Second Histogram___________#
+	h2 = ROOT.TH1F(StringOfName,StringOfName,3,0,3)
+	for i in range(lengthy):
+		temp = Jets[i]
+		h2.Fill(temp)
+
+	#______Third Histogram___________#
+	h3 = ROOT.TH1F(StringOfName,StringOfName,2,0,3)
+	for i in range(lengthy):
+		temp = Jets[i]
+		h3.Fill(temp)
+
+	#____ creating Root File for Histograms______________#
+	h1.Write()
+	h2.Write()
+	h3.Write()
+	f.Close()
+#===========End Histogram ==========================#
 ############Program Start##########################
 
 #============Future Input agruments===============#
-directory1 = str(sys.argv[1]) 
-#directory1= str("MadGraph5/bin/pp/Events/run_01/tag_1_delphes_events.root")
+#directory = str(sys.argv[1]) 
+directory= str("MadGraph5/bin/pptt/Events/run_01/tag_1_delphes_events.root")
+SaveHistROOT = str("~/MadShell/Results/pptt.root")
 TreeNames = "Delphes"
 BranchName = "MissingET"
 LeafNamey = "Jet_size"
 LeafNamex = "MissingET.MET"
 PlotName = "Hello"
-Cutx = 0
+Cutx = 30
 Cuty = 0
 #===========End Future Input arguments============#
 
-x = RootReading(directory1, TreeNames, BranchName, LeafNamex)
-y = TreeLeaves(directory1, TreeNames, LeafNamey)
+x = RootReading(directory, TreeNames, BranchName, LeafNamex) #Defined function at the beginning of script 
+y = TreeLeaves(directory, TreeNames, LeafNamey)	      #Defined function at the beginning of script
+#==================================================#
+#____________Performing Cuts in the array__________#
+R = Region(x , y, Cutx)
+SRJet = R.SRJTS
+VRJet = R.VRJTS
 
-#===== Finding the max and min=======#
-max_x = int(max(x))
-max_y = int(max(y))
-min_x = int(min(x))
-min_y = int(min(y))
-#====================================#
-
-#========== ROOT Figures ============#
-binsy = int(max_y-min_y)
-binsx = int(max_x-min_x)
-
-h2 = ROOT.TH2F("Figure", PlotName, binsx, min_x , max_x, binsy, min_y, max_y)
-length = len(y)
-for i in range(length):
-	valuey = y[i]
-	valuex = x[i]
-	if (Cuty <= valuey) and (Cutx <=valuex):
-		Collecty = valuey 
-		Collectx = valuex
-		h2.Fill(Collectx, Collecty)
-h2.GetXaxis().SetTitle(LeafNamex)
-h2.GetYaxis().SetTitle(LeafNamey)
-h2.GetZaxis().SetTitle("Frequency")
-h2.SetStats(1)
-h2.Draw("lego20")
+HistoGrams("SR","ttbar",SRJet, SaveHistROOT)
+HistoGrams("VR","ttbar",VRJet, SaveHistROOT)
