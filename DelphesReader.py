@@ -53,8 +53,40 @@ def Region ( MissingET, NumberOfJets, GreEqu ):
 	return Output(SRMissingET, SRJets, VRMissingET, VRJets )
 #======= End Validation and Signal Regions ========#
 
-#=========== Histograms ===========================#
-def HistoGrams ( Region, Process, Jets, SaveHistROOT ):
+#=============Jet Filter ==========================#
+def JetFilter ( MissingET, NumberOfJets, limit ):
+	Output = collections.namedtuple("Output", ["JetCut","JetRemain"])
+	ETCut = []
+	ETRemain = []
+	length = len(NumberOfJets)
+	for i in range(length):
+		cut = NumberOfJets[i]
+		ET = MissingET[i]
+		if (cut <= limit): # <----- Collects Jets for cut
+			ETCut.append(ET)
+		if (cut > limit): # <----- Collects Residue
+			ETRemain.append(ET)
+	return Output(ETCut,ETRemain)
+#==============End Jet Filter ======================#
+
+#============HistoJet ==============================#
+def HistoJet ( label, Process, MissingET, SaveHistROOT ):
+	f = ROOT.TFile(SaveHistROOT,"UPDATE")
+	StringOfName = "h" + Process +"Nom_" + label + "_obs_met"
+	max_size = int(max(MissingET))
+	min_size = 0
+	delta = 20
+	lengthy = len(MissingET)
+	h1 = ROOT.TH1F(StringOfName,StringOfName,delta,min_size,max_size)
+	for i in range(lengthy):
+		temp = MissingET[i]
+		h1.Fill(temp)
+	h1.Write()
+	f.Close()
+#============End HistoJet ===============================#
+
+#=========== HistogramsRegion ===========================#
+def HistoGramsRegion ( Region, Process, Jets, SaveHistROOT ):
 	f = ROOT.TFile(SaveHistROOT,"UPDATE")
 	StringOfName = "h" + Process +"Nom_" + Region + "_obs_njets"
 	max_size = int(max(Jets))
@@ -84,29 +116,38 @@ def HistoGrams ( Region, Process, Jets, SaveHistROOT ):
 	h2.Write()
 	h3.Write()
 	f.Close()
-#===========End Histogram ==========================#
+#===========End HistogramRegion ==========================#
+
 ############Program Start##########################
 
 #============Future Input agruments===============#
 #directory = str(sys.argv[1]) 
-directory= str("MadGraph5/bin/pptt/Events/run_01/tag_1_delphes_events.root")
+directory= str("~/MadGraph5/bin/pptt/Events/run_01/tag_1_delphes_events.root")
 SaveHistROOT = str("~/MadShell/Results/pptt.root")
 TreeNames = "Delphes"
 BranchName = "MissingET"
 LeafNamey = "Jet_size"
 LeafNamex = "MissingET.MET"
 PlotName = "Hello"
-Cutx = 30
-Cuty = 0
-#===========End Future Input arguments============#
+Cutx = 0
+Cuty = 1
 
+#===========End Future Input arguments============#
 x = RootReading(directory, TreeNames, BranchName, LeafNamex) #Defined function at the beginning of script 
 y = TreeLeaves(directory, TreeNames, LeafNamey)	      #Defined function at the beginning of script
 #==================================================#
 #____________Performing Cuts in the array__________#
-R = Region(x , y, Cutx)
-SRJet = R.SRJTS
-VRJet = R.VRJTS
 
-HistoGrams("SR","ttbar",SRJet, SaveHistROOT)
-HistoGrams("VR","ttbar",VRJet, SaveHistROOT)
+Z = JetFilter(x, y, Cuty)
+Cut = Z.JetCut
+Residue = Z.JetRemain
+print(Cut)
+HistoJet("jets0", "ttbar", Cut, SaveHistROOT)
+HistoJet("jets", "ttbar", Residue, SaveHistROOT)
+ 
+#R = Region(x , y, Cutx)
+#SRJet = R.SRJTS
+#VRJet = R.VRJTS
+
+#HistoGramsRegion("SR","ttbar",SRJet, SaveHistROOT)
+#HistoGramsRegion("VR","ttbar",VRJet, SaveHistROOT)
