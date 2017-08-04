@@ -1,6 +1,7 @@
 import ROOT
 import sys
 import collections 
+import random #<<< Remove
 
 #============Functions================#
 
@@ -71,9 +72,9 @@ def JetFilter ( MissingET, NumberOfJets, limit ):
 
 #============HistoJet ==============================#
 def HistoJet ( label, Process, MissingET, SaveHistROOT ):
-	f = ROOT.TFile(SaveHistROOT,"UPDATE")
+	f = ROOT.TFile.Open(SaveHistROOT,"UPDATE")
 	StringOfName = "h" + Process +"Nom_" + label + "_obs_met"
-	max_size = int(max(MissingET))
+	max_size = 200
 	min_size = 0
 	delta = 20
 	lengthy = len(MissingET)
@@ -85,10 +86,26 @@ def HistoJet ( label, Process, MissingET, SaveHistROOT ):
 	f.Close()
 #============End HistoJet ===============================#
 
+###############Delete after!!!##################################
+def Lel ( label, Process, MissingET, SaveHistROOT ):
+	f = ROOT.TFile.Open(SaveHistROOT,"UPDATE")
+	StringOfName = "h" + Process +"_" + label + "_obs_met"
+	max_size = 200
+	min_size = 0
+	delta = 20
+	lengthy = len(MissingET)
+	h1 = ROOT.TH1F(StringOfName,StringOfName,delta,min_size,max_size)
+	for i in range(lengthy):
+		temp = MissingET[i]
+		h1.Fill(temp)
+	h1.Write()
+	f.Close()
+################################################################
+
 #=========== HistogramsRegion ===========================#
 def HistoGramsRegion ( Region, Process, Jets, SaveHistROOT ):
 	f = ROOT.TFile(SaveHistROOT,"UPDATE")
-	StringOfName = "h" + Process +"Nom_" + Region + "_obs_njets"
+	StringOfName = "h" + Process +"_" + Region + "_obs_njets"
 	max_size = int(max(Jets))
 	min_size = int(min(Jets))
 	delta = max_size - min_size
@@ -122,15 +139,16 @@ def HistoGramsRegion ( Region, Process, Jets, SaveHistROOT ):
 
 #============Future Input agruments===============#
 #directory = str(sys.argv[1]) 
-directory= str("~/MadGraph5/bin/pptt/Events/run_01/tag_1_delphes_events.root")
-SaveHistROOT = str("~/MadShell/Results/pptt.root")
+directory= str("~/Programs/MadGraph/bin/ttpp/Events/run_01/tag_1_delphes_events.root")
+SaveHistROOT = str("~/MadShell/Results/ttpp.root")
 TreeNames = "Delphes"
 BranchName = "MissingET"
 LeafNamey = "Jet_size"
 LeafNamex = "MissingET.MET"
 PlotName = "Hello"
+#Process = str(sys.argv[1])
 Cutx = 0
-Cuty = 1
+#Cuty = int(sys.argv[2])
 
 #===========End Future Input arguments============#
 x = RootReading(directory, TreeNames, BranchName, LeafNamex) #Defined function at the beginning of script 
@@ -138,13 +156,24 @@ y = TreeLeaves(directory, TreeNames, LeafNamey)	      #Defined function at the b
 #==================================================#
 #____________Performing Cuts in the array__________#
 
-Z = JetFilter(x, y, Cuty)
-Cut = Z.JetCut
-Residue = Z.JetRemain
-print(Cut)
-HistoJet("jets0", "ttbar", Cut, SaveHistROOT)
-HistoJet("jets", "ttbar", Residue, SaveHistROOT)
- 
+names = ["Data", "Ratio", "WW", "WZ", "Wjets", "Wt", "ZZ", "Zjets", "ttbar", "WWJETEffectiveNPLow", "WZJETEffectiveNPLow", "WjetsJETEffectiveNPLow", "WtJETEffectiveNPLow", "ZZJETEffectiveNPLow", "ZjetsJETEffectiveNPLow", "ttbarJETEffectiveNPLow", "WWJETEffectiveNPHigh", "WZJETEffectiveNPHigh", "WjetsJETEffectiveNPHigh", "WtJETEffectiveNPHigh", "ZZJETEffectiveNPHigh", "ZjetsJETEffectiveNPHigh", "ttbarJETEffectiveNPHigh", ]
+
+for i in names: 
+	Process = i
+	Cuty = random.randint(0,8)
+	if ( i == "Data" ):
+		Z = JetFilter(x, y, Cuty)
+		Cut = Z.JetCut
+		Residue = Z.JetRemain
+		Lel("jets0", Process, Cut, SaveHistROOT)
+		Lel("jets", Process, Residue, SaveHistROOT)
+	elif ( i != "Data" ):
+		Z = JetFilter(x, y, Cuty)
+		Cut = Z.JetCut
+		Residue = Z.JetRemain
+		HistoJet("jets0", Process, Cut, SaveHistROOT)
+		HistoJet("jets", Process, Residue, SaveHistROOT)
+	
 #R = Region(x , y, Cutx)
 #SRJet = R.SRJTS
 #VRJet = R.VRJTS
