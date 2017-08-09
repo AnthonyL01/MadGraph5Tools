@@ -140,6 +140,7 @@ def HistoGramsRegion ( Region, Process, Jets, SaveHistROOT ):
 #============Future Input agruments===============#
 #directory = str(sys.argv[1]) 
 directory= str("~/Programs/MadGraph/bin/ttpp/Events/run_01/tag_1_delphes_events.root")
+directory2 = str("~/MadShell/Data/histo14.root")
 SaveHistROOT = str("~/MadShell/Results/ttpp.root")
 TreeNames = "Delphes"
 BranchName = "MissingET"
@@ -156,6 +157,46 @@ y = TreeLeaves(directory, TreeNames, LeafNamey)	      #Defined function at the b
 #==================================================#
 #____________Performing Cuts in the array__________#
 
+histograms = []
+histfile = ROOT.TFile(directory2)
+NewFile = ROOT.TFile(SaveHistROOT, "RECREATE")
+histnames = histfile.GetListOfKeys()
+for i in histnames:
+	kname = i.GetName()
+	print(knane)
+	hist = i.ReadObj()
+	h = histfile.Get(kname)
+	h.Write()
+NewFile.Write()
+NewFile.Close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
 names = ["Data", "Ratio", "WW", "WZ", "Wjets", "Wt", "ZZ", "Zjets", "ttbar", "WWJETEffectiveNPLow", "WZJETEffectiveNPLow", "WjetsJETEffectiveNPLow", "WtJETEffectiveNPLow", "ZZJETEffectiveNPLow", "ZjetsJETEffectiveNPLow", "ttbarJETEffectiveNPLow", "WWJETEffectiveNPHigh", "WZJETEffectiveNPHigh", "WjetsJETEffectiveNPHigh", "WtJETEffectiveNPHigh", "ZZJETEffectiveNPHigh", "ZjetsJETEffectiveNPHigh", "ttbarJETEffectiveNPHigh", ]
 
 for i in names: 
@@ -180,3 +221,48 @@ for i in names:
 
 #HistoGramsRegion("SR","ttbar",SRJet, SaveHistROOT)
 #HistoGramsRegion("VR","ttbar",VRJet, SaveHistROOT)
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+#========== ROOT Figures ============#
+binsy = int(max_y-min_y)
+binsx = int(max_x-min_x)
+
+h2 = ROOT.TH2F("Figure", PlotName, binsx, min_x , max_x, binsy, min_y, max_y)
+length = len(y)
+for i in range(length):
+	valuey = y[i]
+	valuex = x[i]
+	if (Cuty <= valuey) and (Cutx >=valuex):
+		Collecty = valuey 
+		Collectx = valuex
+		h2.Fill(Collectx, Collecty)
+
+h2.GetXaxis().SetTitle(LeafNamex)
+h2.GetYaxis().SetTitle(LeafNamey)
+h2.GetZaxis().SetTitle("Frequency")
+h2.SetStats(1)
+h2.Draw("lego20")
+
+raw_input("Press Enter to continue...")
+'''
+
+
