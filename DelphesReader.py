@@ -139,7 +139,10 @@ def HistoGramsRegion ( Region, Process, Jets, SaveHistROOT ):
 
 #============Future Input agruments===============#
 #directory = str(sys.argv[1]) 
-directory= str("~/Programs/MadGraph/bin/ttpp/Events/run_01/tag_1_delphes_events.root")
+#Process = str(sys.argv[1])
+#Cuty = int(sys.argv[2])
+
+directory= str("~/MadGraph5/bin/ttpp/Events/run_01/tag_1_delphes_events.root")
 directory2 = str("~/MadShell/Data/histo14.root")
 SaveHistROOT = str("~/MadShell/Results/ttpp.root")
 TreeNames = "Delphes"
@@ -147,9 +150,9 @@ BranchName = "MissingET"
 LeafNamey = "Jet_size"
 LeafNamex = "MissingET.MET"
 PlotName = "Hello"
-#Process = str(sys.argv[1])
+
 Cutx = 0
-#Cuty = int(sys.argv[2])
+Cuty = 0
 
 #===========End Future Input arguments============#
 x = RootReading(directory, TreeNames, BranchName, LeafNamex) #Defined function at the beginning of script 
@@ -157,21 +160,34 @@ y = TreeLeaves(directory, TreeNames, LeafNamey)	      #Defined function at the b
 #==================================================#
 #____________Performing Cuts in the array__________#
 
+
+
+
 histograms = []
 histfile = ROOT.TFile(directory2)
 NewFile = ROOT.TFile(SaveHistROOT, "RECREATE")
 histnames = histfile.GetListOfKeys()
 for i in histnames:
 	kname = i.GetName()
-	print(knane)
-	hist = i.ReadObj()
-	h = histfile.Get(kname)
-	h.Write()
-NewFile.Write()
+	if ( kname == "httbarNom_jets_obs_met" ):
+		continue
+	if ( kname == "httbarNom_jets0_obs_met" ):
+		continue
+	else:
+		hist = i.ReadObj()
+		h = histfile.Get(kname)
+		h.Write()
+
 NewFile.Close()
 
+#=====Adjust these to fit isabelles data =====
+Jet1 = JetFilter(x,y,2) #<----
+ET = Jet1.JetCut
+HistoJet ( "jets", "ttbar",ET, SaveHistROOT )
 
-
+Jet = JetFilter(x,y,3) #<-----
+ETJ0 = Jet.JetCut
+HistoJet ( "jets0", "ttbar",ETJ0, SaveHistROOT )
 
 
 
@@ -264,5 +280,3 @@ h2.Draw("lego20")
 
 raw_input("Press Enter to continue...")
 '''
-
-
