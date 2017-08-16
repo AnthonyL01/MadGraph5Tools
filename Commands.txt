@@ -1,0 +1,59 @@
+1
+p p > t t~; p p > W- j;  p p > W+ W-; p p > W- Z; p p > Z j; p p > Z Z;
+pptt; ppWj; ppWW; ppWZ; ppZj; ppZZ;
+y
+2
+p p > W+ j;
+4
+p p > W+ Z;
+7
+y
+1 # <.... process
+1
+2
+2
+6
+2
+1000 <.... change 
+8
+2 # <.... process
+1
+2
+2
+6
+2
+1000 <.... change 
+8
+3 # <.... process
+1
+2
+2
+6
+2
+1000 <.... change 
+8
+4 # <.... process
+1
+2
+2
+6
+2
+1000 <.... change 
+8
+5 # <.... process
+1
+2
+2
+6
+2
+1000 <.... change 
+8
+6 # <.... process
+1
+2
+2
+6
+2
+1000 <.... change 
+8
+7
