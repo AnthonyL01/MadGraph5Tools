@@ -142,9 +142,9 @@ def HistoGramsRegion ( Region, Process, Jets, SaveHistROOT ):
 #Process = str(sys.argv[1])
 #Cuty = int(sys.argv[2])
 
-directory= str("~/MadGraph5/bin/ttpp/Events/run_01/tag_1_delphes_events.root")
+directory= str("~/Programs/MadGraph/bin/ttpp/Events/run_01/tag_1_delphes_events.root")
 directory2 = str("~/MadShell/Data/histo14.root")
-SaveHistROOT = str("~/MadShell/Results/ttpp.root")
+SaveHistROOT = str("~/MadShell/Results/Results.root")
 TreeNames = "Delphes"
 BranchName = "MissingET"
 LeafNamey = "Jet_size"
@@ -155,14 +155,10 @@ Cutx = 0
 Cuty = 0
 
 #===========End Future Input arguments============#
-x = RootReading(directory, TreeNames, BranchName, LeafNamex) #Defined function at the beginning of script 
-y = TreeLeaves(directory, TreeNames, LeafNamey)	      #Defined function at the beginning of script
-#==================================================#
+
+
+
 #____________Performing Cuts in the array__________#
-
-
-
-
 histograms = []
 histfile = ROOT.TFile(directory2)
 NewFile = ROOT.TFile(SaveHistROOT, "RECREATE")
@@ -173,6 +169,26 @@ for i in histnames:
 		continue
 	if ( kname == "httbarNom_jets0_obs_met" ):
 		continue
+	if ( kname == "hWWNom_jets_obs_met" ):
+		continue
+	if ( kname == "hWWNom_jets0_obs_met" ):
+		continue
+	if ( kname == "hWZNom_jets_obs_met" ):
+		continue
+	if ( kname == "hWZNom_jets0_obs_met" ):
+		continue
+	if ( kname == "hWjetsNom_jets_obs_met" ):
+		continue
+	if ( kname == "hWjetsNom_jets0_obs_met" ):
+		continue
+	if ( kname == "hZZNom_jets_obs_met" ):
+		continue
+	if ( kname == "hZZNom_jets0_obs_met" ):
+		continue
+	if ( kname == "hZjetsNom_jets_obs_met" ):
+		continue
+	if ( kname == "hZjetsNom_jets0_obs_met" ):
+		continue
 	else:
 		hist = i.ReadObj()
 		h = histfile.Get(kname)
@@ -181,13 +197,22 @@ for i in histnames:
 NewFile.Close()
 
 #=====Adjust these to fit isabelles data =====
-Jet1 = JetFilter(x,y,2) #<----
-ET = Jet1.JetCut
-HistoJet ( "jets", "ttbar",ET, SaveHistROOT )
+names = ["pptt","ppWj","ppWW","ppWZ","ppZj","ppZZ"]
+length = len(names)
+processes = ["ttbar","Wjets","WW","WZ","Zjets", "ZZ"]
+for i in range(length):
+	name = names[i]
+	process = processes[i]
+	directory= str("~/Programs/MadGraph/bin/"+ name +"/Events/run_01/tag_1_delphes_events.root")
+	x = RootReading(directory, TreeNames, BranchName, LeafNamex) #Defined function at the beginning of script 
+	y = TreeLeaves(directory, TreeNames, LeafNamey)	      #Defined function at the beginning of script
+	Jet1 = JetFilter(x,y,2) #<----
+	ET = Jet1.JetCut
+	HistoJet ( "jets", process,ET, SaveHistROOT )
 
-Jet = JetFilter(x,y,3) #<-----
-ETJ0 = Jet.JetCut
-HistoJet ( "jets0", "ttbar",ETJ0, SaveHistROOT )
+	Jet = JetFilter(x,y,3) #<-----
+	ETJ0 = Jet.JetCut
+	HistoJet ( "jets0", process, ETJ0, SaveHistROOT )
 
 
 
@@ -280,3 +305,4 @@ h2.Draw("lego20")
 
 raw_input("Press Enter to continue...")
 '''
+
