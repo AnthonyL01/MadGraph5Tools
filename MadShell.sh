@@ -3,7 +3,6 @@
 #!/bin/ipython
 #This shell script is used to run MadGraph 5 commands and events:
 #==========================Setting the directory of MadGraph 5=========================#
-
 echo -e "\e[1;34m Welcome to MadShell! By Thomas Nommensen\e[0m"
 #Finding the directories which have MadGraph 5
 MadGraph=($(find ~/ -name "mg5_aMC" ))
@@ -18,7 +17,6 @@ done
 #Extract the directory and change to it!
 directory="$(dirname $dir)/"
 cd $directory
-
 #Removing any existing files
 rm -r */
 #============We now generate the config file for MadGraph 5:======================#
@@ -30,7 +28,7 @@ continue="no"
 while [ "no" == $continue ];
 do
 	#_____________Process to run__________________________________#
-	read -p "Enter the processes to be generated (ending with ';'): " input
+	read -p "Enter the processes to be generated (ending with ';'): " input 
 	splitter=($(echo $input | fold -w1))
 	generate=()
 	for i in ${splitter[@]};
@@ -258,6 +256,7 @@ Weight="no"
 MadSpin="no"
 extraction="no"
 Analysis="Off"
+P
 
 
 #Adding a finish option to menu
@@ -499,7 +498,6 @@ then
 					elif [[ "$Sim" == "Back" ]];
 					then
 						echo "Weight: $Weight MadSpin: $MadSpin Detector: $SimDetector Pythia: $Pythia Analysis: $Analysis"
-						sleep 2
 						PythiaDetector="false"
 					fi
 				done
@@ -742,13 +740,12 @@ then
 		#===================================================================#
 
 		#============Using DelphesReader.py=================================#
-		echo "Performing plots"
 		Plots=${Plo[$i]}
 		PlotDecision=($(grep -o "no" $Plots | wc -l))
 		if [[ "$PlotDecision" == "1" ]]; 
 		then
 			echo "Not plotting Delphes root"
-		elif [[ "$PlotDecision" == "0" ]];
+		elif [[ "$PlotDecision" == "yes" ]];
 		then 
 			for (( y=1; y <= $number; y++ )); 
 			do	
@@ -768,6 +765,5 @@ then
 		rm $path
 		rm $Les
 		rm $Plots
-		rm $MadRun
 	done
 fi
