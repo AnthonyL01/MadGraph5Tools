@@ -12,9 +12,10 @@ cd ~/MadShell/
 
 i=0
 steps=1000
-iterations=1
+iterations=50
 for ((x=1; x<= $iterations; x++));
 do
+	rm ~/Commands.txt
 	i=$((i+ $steps)) #<---- number of events
 	for command in "${initial[@]}"; #<----- writing the initial script for MadShell
 	do
@@ -33,7 +34,6 @@ do
 	echo "7" >> Commands.txt
 	bash MadShell.sh < Commands.txt
 	sleep 5
-	rm ~/Commands.txt
 	python DelphesReader.py 
 	HistFitter.py -w -f -D "before,after" /home/tnom6927/MadShell/Data/MyOneBinExample_6Tom.py >> logFile.txt
 	mkdir Plots
@@ -42,4 +42,6 @@ do
 	mv can_jets0_met_beforeFit.pdf ~/MadShell/Plots/can_jets0_met_beforeFit$i.pdf
 	mv can_jets_met_afterFit.pdf ~/MadShell/Plots/can_jets_met_afterFit$i.pdf
 	mv can_jets_met_beforeFit.pdf ~/MadShell/Plots/can_jets_met_beforeFit$i.pdf
+	cd ~/MadShell
+	rm -rf results data config Commands.txt
 done
