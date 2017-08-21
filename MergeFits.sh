@@ -20,24 +20,25 @@ do
 	label="$(cut -d "_" -f2 <<< $actual)"
 	label2="$(cut -d "_" -f4 <<< $actual)"
 	label3="$(sed "s/[^0-9]//g" <<< $label2)"
-	if [[ "$label" == *"jets0"* ]];
+	if [[ "$label" == "jets0" ]];
 	then
-		if [[ "$label2" == *"before"* ]];
+		if [[ "$label2" == "before"* ]];
 		then 
 			name="can_""$label""_met_""beforeFit$label3"".jpg"
 			jets0before+=("$name")
-		elif [[ "$label2" == *"after"* ]];
+		elif [[ "$label2" == "after"* ]];
 		then
 			name="can_""$label""_met_""afterFit$label3"".jpg"
 			jets0after+=("$name")
 		fi
-	elif [[ "$label" == *"jets"* ]];
+	fi
+	if [[ "$label" == "jets" ]];
 	then 
-		if [[ "$label2" == *"before"* ]];
+		if [[ "$label2" == "before"* ]];
 		then 
 			name="can_""$label""_met_""$label2"".jpg"
 			jetsbefore+=("$name")
-		elif [[ "$label2" == *"after"* ]];
+		elif [[ "$label2" == "after"* ]];
 		then		
 			name="can_""$label""_met_""$label2"".jpg"
 			jetsafter+=("$name")
@@ -66,7 +67,6 @@ do
 			inputa="can_jets0_met_afterFit$label3a.jpg"
 			inputb="can_jets0_met_beforeFit$label3b.jpg"
 			output="can_jets0_met_$label3a.jpg"
-			echo "$inputa $inputb $output"
 			convert +append $inputa $inputb $output
 		fi
 	done
@@ -80,8 +80,8 @@ do
 	label3a="$(sed "s/[^0-9]//g" <<< $label2a)"
 	for z in "${!jetsafter[@]}";
 	do 
-		nameJet0b="${jetsbefore[$z]}"
-		label2b="$(cut -d "_" -f4 <<< $nameJet0b)"
+		nameJetb="${jetsbefore[$z]}"
+		label2b="$(cut -d "_" -f4 <<< $nameJetb)"
 		label3b="$(sed "s/[^0-9]//g" <<< $label2b)"
 		if [[ "$label3b" == "$label3a" ]];
 		then 
