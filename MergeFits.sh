@@ -64,7 +64,7 @@ do
 		if [[ "$label3b" == "$label3a" ]];
 		then 
 			inputa="can_jets0_met_afterFit$label3a.jpg"
-			inputb="can_jets0_met_afterFit$label3b.jpg"
+			inputb="can_jets0_met_beforeFit$label3b.jpg"
 			output="can_jets0_met_$label3a.jpg"
 			echo "$inputa $inputb $output"
 			convert +append $inputa $inputb $output
@@ -85,9 +85,9 @@ do
 		label3b="$(sed "s/[^0-9]//g" <<< $label2b)"
 		if [[ "$label3b" == "$label3a" ]];
 		then 
-			inputa="can_jets0_met_afterFit$label3a.jpg"
-			inputb="can_jets0_met_beforeFit$label3b.jpg"
-			output="can_jets0_met_$label3a.jpg"
+			inputa="can_jets_met_afterFit$label3a.jpg"
+			inputb="can_jets_met_beforeFit$label3b.jpg"
+			output="can_jets_met_$label3a.jpg"
 			rm $inputa $inputb
 			convert +append $inputa $inputb $output
 		fi
