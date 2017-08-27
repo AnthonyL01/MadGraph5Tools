@@ -1,7 +1,6 @@
 import ROOT
 import sys
 import collections 
-import random #<<< Remove
 
 #============Functions================#
 
@@ -85,22 +84,6 @@ def HistoJet ( label, Process, MissingET, SaveHistROOT ):
 	h1.Write()
 	f.Close()
 #============End HistoJet ===============================#
-
-###############Delete after!!!##################################
-def Lel ( label, Process, MissingET, SaveHistROOT ):
-	f = ROOT.TFile.Open(SaveHistROOT,"UPDATE")
-	StringOfName = "h" + Process +"_" + label + "_obs_met"
-	max_size = 200
-	min_size = 0
-	delta = 20
-	lengthy = len(MissingET)
-	h1 = ROOT.TH1F(StringOfName,StringOfName,delta,min_size,max_size)
-	for i in range(lengthy):
-		temp = MissingET[i]
-		h1.Fill(temp)
-	h1.Write()
-	f.Close()
-################################################################
 
 #=========== HistogramsRegion ===========================#
 def HistoGramsRegion ( Region, Process, Jets, SaveHistROOT ):
@@ -206,103 +189,9 @@ for i in range(length):
 	directory= str("~/Programs/MadGraph/bin/"+ name +"/Events/run_01/tag_1_delphes_events.root")
 	x = RootReading(directory, TreeNames, BranchName, LeafNamex) #Defined function at the beginning of script 
 	y = TreeLeaves(directory, TreeNames, LeafNamey)	      #Defined function at the beginning of script
-	Jet1 = JetFilter(x,y,2) #<----
-	ET = Jet1.JetCut
-	HistoJet ( "jets", process,ET, SaveHistROOT )
-
-	Jet = JetFilter(x,y,3) #<-----
-	ETJ0 = Jet.JetCut
-	HistoJet ( "jets0", process, ETJ0, SaveHistROOT )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-names = ["Data", "Ratio", "WW", "WZ", "Wjets", "Wt", "ZZ", "Zjets", "ttbar", "WWJETEffectiveNPLow", "WZJETEffectiveNPLow", "WjetsJETEffectiveNPLow", "WtJETEffectiveNPLow", "ZZJETEffectiveNPLow", "ZjetsJETEffectiveNPLow", "ttbarJETEffectiveNPLow", "WWJETEffectiveNPHigh", "WZJETEffectiveNPHigh", "WjetsJETEffectiveNPHigh", "WtJETEffectiveNPHigh", "ZZJETEffectiveNPHigh", "ZjetsJETEffectiveNPHigh", "ttbarJETEffectiveNPHigh", ]
-
-for i in names: 
-	Process = i
-	Cuty = random.randint(0,8)
-	if ( i == "Data" ):
-		Z = JetFilter(x, y, Cuty)
-		Cut = Z.JetCut
-		Residue = Z.JetRemain
-		Lel("jets0", Process, Cut, SaveHistROOT)
-		Lel("jets", Process, Residue, SaveHistROOT)
-	elif ( i != "Data" ):
-		Z = JetFilter(x, y, Cuty)
-		Cut = Z.JetCut
-		Residue = Z.JetRemain
-		HistoJet("jets0", Process, Cut, SaveHistROOT)
-		HistoJet("jets", Process, Residue, SaveHistROOT)
-	
-#R = Region(x , y, Cutx)
-#SRJet = R.SRJTS
-#VRJet = R.VRJTS
-
-#HistoGramsRegion("SR","ttbar",SRJet, SaveHistROOT)
-#HistoGramsRegion("VR","ttbar",VRJet, SaveHistROOT)
-'''
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-#========== ROOT Figures ============#
-binsy = int(max_y-min_y)
-binsx = int(max_x-min_x)
-
-h2 = ROOT.TH2F("Figure", PlotName, binsx, min_x , max_x, binsy, min_y, max_y)
-length = len(y)
-for i in range(length):
-	valuey = y[i]
-	valuex = x[i]
-	if (Cuty <= valuey) and (Cutx >=valuex):
-		Collecty = valuey 
-		Collectx = valuex
-		h2.Fill(Collectx, Collecty)
-
-h2.GetXaxis().SetTitle(LeafNamex)
-h2.GetYaxis().SetTitle(LeafNamey)
-h2.GetZaxis().SetTitle("Frequency")
-h2.SetStats(1)
-h2.Draw("lego20")
-
-raw_input("Press Enter to continue...")
-'''
+	Jet1 = JetFilter(x,y,0) #<----
+	ETJ0 = Jet1.JetCut
+	ETRemain = Jet1.JetRemain
+	HistoJet ( "jets", process,ETJ0, SaveHistROOT )
+	HistoJet ( "jets0", process, ETRemain, SaveHistROOT )
 
