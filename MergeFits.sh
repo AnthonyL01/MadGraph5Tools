@@ -88,7 +88,6 @@ do
 			inputa="can_jets_met_afterFit$label3a.jpg"
 			inputb="can_jets_met_beforeFit$label3b.jpg"
 			output="can_jets_met_$label3a.jpg"
-			rm $inputa $inputb
 			convert +append $inputa $inputb $output
 		fi
 	done
