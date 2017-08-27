@@ -11,8 +11,9 @@ source setup.sh
 cd ~/MadShell/
 
 i=0
-steps=1000
-iterations=50
+steps=100
+End=15000
+iterations=$(( (End - i)/steps ))
 for ((x=1; x<= $iterations; x++));
 do
 	rm ~/Commands.txt
