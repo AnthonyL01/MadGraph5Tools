@@ -2,10 +2,7 @@
 # This is developed to extract data from the log files created by HistFitter and 
 # 				MadGraph 5 after running MadShell
 #=================BY THOMAS NOMMENSEN==================================
-from decimal import *
-import time
-import ROOT
-import sys
+import os
 #===================Data arrays=====================================================
 Process = []
 Luminosity = []
@@ -14,37 +11,58 @@ Events = []
 
 #===================Reading=========================================================
 # In this section we are reading the log text and filtering out useless text to extract the cross section... 
-IndexE = 0
-IndexM = 0
 j = 0
-with open("MadShellLog1.txt") as File:
+FileIn = "MadShellLog1.txt"
+FileOut = "Clean.txt"	
+with open(FileIn) as File:
 	for i in File:			
 		if "launch" in i:
-			launch = str(i.strip(" launch"))
+			launch = str(i.strip(" launch").rstrip())
 			j = 0
 			E = 0
 			C = 0
 			Process.append(launch)
 		if "Effective Luminosity" in i and E < 1:
-			string = str(i.strip("INFO: ").strip("Effective Luminosity"))
+			string = str(i.strip("INFO: ").strip("Effective Luminosity").rstrip())
 			E = 1
 			Luminosity.append(string)
 		if "Cross-section :" in i and C < 1:
 			C = 1
-			Cross = str(i.strip("Cross-section :"))
+			Cross = str(i.strip("Cross-section :").rstrip())
 			Xsection.append(Cross)
 		if "Nb of events :  " in i and j < 1:
-			events = str(i.strip("Nb of events:"))
-			number = float(events)
+			events = str(i.strip("Nb of events:").rstrip())
 			j = 1
-			Events.append(number)
+			Events.append(events)
+#===================Filtering=====================#
+for i in Process:
+	exec("%s = %s" % (i,[])) #<---- creates dynamic arrays for each of the names in process
 
 for x in range(len(Events)):
 	P = Process[x]
 	L = Luminosity[x]
 	X = Xsection[x]
 	E1 = Events[x]
-	E2 = Events[x-1]
-	delta = E2-E1
-	if delta > 0 or delta < 0:
-	
+	x = " Events: "+E1+" Luminosity: "+L+" Cross-Section: "+X
+	eval(P).append(x)
+
+#========= Writing to File=======
+file = open("test.txt","w")
+for i in Process:
+	file.write("\n")
+	lines="==============================="+i+"==================================="
+	file.write(lines)
+	file.write("\n")
+	for x in eval(i):
+		file.write(x)
+		file.write("\n")
+file.close()
+
+file = open(FileOut,"w")
+readlines= []
+for line in open("test.txt"):
+	if line not in readlines:
+		readlines.append(line)
+		file.write(line)
+file.close()
+os.remove("test.txt")
