@@ -132,10 +132,6 @@ TreeNames = "Delphes"
 BranchName = "MissingET"
 LeafNamey = "Jet_size"
 LeafNamex = "MissingET.MET"
-PlotName = "Hello"
-
-Cutx = 0
-Cuty = 0
 
 #===========End Future Input arguments============#
 
@@ -172,13 +168,87 @@ for i in histnames:
 		continue
 	if ( kname == "hZjetsNom_jets0_obs_met" ):
 		continue
+	if (kname == "hWWJETEffectiveNPLow_jets_obs_met" ):
+		continue
+	if (kname == "hWWJETEffectiveNPLow_jets0_obs_met" ):
+		continue
+	if (kname == "hWZJETEffectiveNPLow_jets_obs_met" ):
+		continue
+	if (kname == "hWZJETEffectiveNPLow_jets0_obs_met" ):
+		continue
+	if (kname == "hWjetsJETEffectiveNPLow_jets_obs_met" ):
+		continue
+	if (kname == "hWjetsETEffectiveNPLow_jets0_obs_met" ):
+		continue
+	if (kname == "hWtJETEffectiveNPLow_jets_obs_met" ):
+		continue
+	if (kname == "hWtJETEffectiveNPLow_jets0_obs_met" ):
+		continue
+	if (kname == "hZZJETEffectiveNPLow_jets_obs_met" ):
+		continue
+	if (kname == "hZZJETEffectiveNPLow_jets0_obs_met" ):
+		continue
+	if (kname == "hWjetsJETEffectiveNPLow_jets_obs_met" ):
+		continue
+	if (kname == "hWjetsJETEffectiveNPLow_jets0_obs_met" ):
+		continue
+	if (kname == "httbarJETEffectiveNPLow_jets_obs_met" ):
+		continue
+	if (kname == "httbarETEffectiveNPLow_jets0_obs_met" ):
+		continue
+	if (kname == "hZjetsJETEffectiveNPLow_jets_obs_met" ):
+		continue
+	if (kname == "hZjetsETEffectiveNPLow_jets0_obs_met" ):
+		continue
+	if (kname == "hWWJETEffectiveNPHigh_jets_obs_met" ):
+		continue
+	if (kname == "hWWJETEffectiveNPHigh_jets0_obs_met" ):
+		continue
+	if (kname == "hWZJETEffectiveNPHigh_jets_obs_met" ):
+		continue
+	if (kname == "hWZJETEffectiveNPHigh_jets0_obs_met" ):
+		continue
+	if (kname == "hWjetsJETEffectiveNPHigh_jets_obs_met" ):
+		continue
+	if (kname == "hWjetsETEffectiveNPHigh_jets0_obs_met" ):
+		continue
+	if (kname == "hWtJETEffectiveNPHigh_jets_obs_met" ):
+		continue
+	if (kname == "hWtJETEffectiveNPHigh_jets0_obs_met" ):
+		continue
+	if (kname == "hZZJETEffectiveNPHigh_jets_obs_met" ):
+		continue
+	if (kname == "hZZJETEffectiveNPHigh_jets0_obs_met" ):
+		continue
+	if (kname == "hWjetsJETEffectiveNPHigh_jets_obs_met" ):
+		continue
+	if (kname == "hWjetsJETEffectiveNPHigh_jets0_obs_met" ):
+		continue
+	if (kname == "httbarJETEffectiveNPHigh_jets_obs_met" ):
+		continue
+	if (kname == "httbarJETEffectiveNPHigh_jets0_obs_met" ):
+		continue
+	if (kname == "httbarJETEffectiveNPLow_jets0_obs_met" ):
+		continue
+	if (kname == "hZjetsJETEffectiveNPHigh_jets_obs_met" ):
+		continue
+	if (kname == "hZjetsJETEffectiveNPHigh_jets0_obs_met" ):
+		continue
+	if (kname == "hZjetsJETEffectiveNPLow_jets_obs_met" ):
+		continue
+	if (kname == "hZjetsJETEffectiveNPLow_jets0_obs_met" ):
+		continue
+
+	if (kname == "hRatioNom_jets_obs_met" ):
+		continue
+	if (kname == "hRatioNom_jets0_obs_met" ):
+		continue
 	else:
 		hist = i.ReadObj()
 		h = histfile.Get(kname)
 		h.Write()
 
 NewFile.Close()
-
 #=====Adjust these to fit isabelles data =====
 names = ["pptt","ppWj","ppWW","ppWZ","ppZj","ppZZ"]
 length = len(names)
@@ -192,6 +262,5 @@ for i in range(length):
 	Jet1 = JetFilter(x,y,0) #<----
 	ETJ0 = Jet1.JetCut
 	ETRemain = Jet1.JetRemain
-	HistoJet ( "jets", process,ETJ0, SaveHistROOT )
-	HistoJet ( "jets0", process, ETRemain, SaveHistROOT )
-
+	HistoJet ( "jets", process,ETRemain, SaveHistROOT )
+	HistoJet ( "jets0", process, ETJ0, SaveHistROOT )
