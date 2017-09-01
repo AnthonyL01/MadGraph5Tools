@@ -256,7 +256,6 @@ Weight="no"
 MadSpin="no"
 extraction="no"
 Analysis="Off"
-P
 
 
 #Adding a finish option to menu
@@ -516,11 +515,8 @@ then
 			#Enters Edit Beam Energy
 			elif [ "$category" == "Edit Beam Energy" ];
 			then 
-				unset i		#Cleaning Variables 
+				#Cleaning Variables 
 				unset Card
-				unset Name
-				unset Wanted
-
 				BeamLOOP="true"
 				Beams=("Beam1" "Beam2" "Finished")
 				
@@ -538,9 +534,7 @@ then
 					#============Beam 1==============
 					elif [[ "$object" == "Beam1" ]];
 					then
-						unset i
 						unset Card
-	
 						#Changing the settings in the .dat file using the sed -i (interactive command)				
 						Card=run_card.dat
 						read -p "Enter the energy of Beam 1 (GeV): " BeamEV1
@@ -548,18 +542,14 @@ then
 					#===========Beam 2===============
 					elif [[ "$object" == "Beam2" ]];
 					then 
-
-						unset i
 						unset Card
-						unset Name
-						unset Wanted	
-	
 						#Changing the settings in the .dat file using the sed -i (interactive command)				
-						Card=run_card.dat
+						Card1=run_card.dat
 						read -p "Enter the energy of Beam 2 (GeV): " BeamEV2
-						sed -i "/ebeam2/c\     "$BeamEV2"     = ebeam2  ! beam 2 total energy in GeV" $Card
+						sed -i "/ebeam2/c\     "$BeamEV2"     = ebeam2  ! beam 2 total energy in GeV" $Card1
 					fi
 				done
+	
 			#Enters Model to Import
 			elif [ "$category" == "Model to Import" ];
 			then 
@@ -683,10 +673,10 @@ then
 			
 			if [[ $x -le 1 ]];
 			then
-				python mg5_aMC "$path" > /dev/null 2>&1 #<<<<<<< initial run for post launch settings 
+				python mg5_aMC "$path" >> ~/MadShell/MadShellLog.txt #<<<<<<< initial run for post launch settings 
 			elif [[ $x -gt 1 ]];
 			then
-				python mg5_aMC "$MadRun" > /dev/null 2>&1	#<<<<<<<< Post runs 
+				python mg5_aMC "$MadRun" >> ~/MadShell/MadShellLog.txt	#<<<<<<<< Post runs 
 			fi	
 
 			#This is for the progress bar!!!##########
