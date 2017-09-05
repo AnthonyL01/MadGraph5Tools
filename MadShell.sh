@@ -247,19 +247,17 @@ Pythia=()
 Evnts=()
 BeamEV1=()
 BeamEV2=()
-NumberOfRuns=1
 #Standard Settings for MadGraph5 
 Import_model="!" 
 Pythia="no"
 SimDetector="Off"
 Weight="no"
 MadSpin="no"
-extraction="no"
 Analysis="Off"
 
 
 #Adding a finish option to menu
-selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Number of Runs" "Les Houches Format" "Plots" "Finished")
+selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Plots" "Finished")
 
 #User interaction point
 read -p "Would you like to edit these processes? (y/n): " options
@@ -281,7 +279,6 @@ then
 			for name in "${Names[@]}";
 			do			
 				place=$directory$name/Cards/MadShell
-				Extract=$directory$name/Cards/Extract
 				Plotting=$directory$name/Cards/Plotting	
 				if [[ -f "$place" ]];			
 				then			
@@ -292,16 +289,6 @@ then
 					echo "$second" >> MadShell
 					echo "done" >> MadShell
 					echo "done" >> MadShell
-					echo "no" >> Extract
-					cd $directory
-				fi
-
-				if [[ -f "$Extract" ]];			
-				then			
-					continue
-				else	
-					cd $directory$name/Cards/				
-					echo "no" >> Extract
 					cd $directory
 				fi
 
@@ -340,7 +327,7 @@ then
 		echo "Chose one of the options below"
 		while [ "$suboptions" == "incomplete" ];
 		do
-			echo -e "You have chosen; Process: \e[1;32m"$process"\e[0m" "Name: \e[1;32m"$Name"\e[0m" ", Number of Events: \e[1;32m"$Evnts"\e[0m, Beam Energy, 1: \e[1;32m"$BeamEV1"\e[0m 2: \e[1;32m"$BeamEV2"\e[0m, Model: \e[1;32m"$Import_model"\e[0m, Number of Runs: \e[1;32m"$NumberOfRuns"\e[0m""\e[0m, Les Houches Format extraction: \e[1;32m"$extraction"\e[0m ,  Plotting: \e[1;32m"$Plot"\e[0m"  
+			echo -e "You have chosen; Process: \e[1;32m"$process"\e[0m" "Name: \e[1;32m"$Name"\e[0m" ", Number of Events: \e[1;32m"$Evnts"\e[0m, Beam Energy, 1: \e[1;32m"$BeamEV1"\e[0m 2: \e[1;32m"$BeamEV2"\e[0m, Model: \e[1;32m"$Import_model"\e[0m, Plotting: \e[1;32m"$Plot"\e[0m"  
 			select category in "${selections[@]}";
 			do
 				[ -n "${category}" ] && break
@@ -352,64 +339,58 @@ then
 				#Writing a config file for MadGraph5 for these particular settings
 				#Used Variables: Pythia, SimDetector, MadSpin, Weight, Import_model , NumberOfRuns, Name
 				rm MadShell > /dev/null 2>&1 #This removes any existing MadShell settings file.
-				rm Extract > /dev/null 2>&1
 				rm Plotting > /dev/null 2>&1
-				for (( i=1; i <= $NumberOfRuns; i++))
-				do 	
-					if [[ "$i" == "1" ]];
-					then
-						if [[ "$Import_model" == "!" ]]; then
-							Nothing=""
-						else
-							first="import $Import_model" #Imports models
-							echo "$first" >> MadShell     
-						fi
+				if [[ "$i" == "1" ]];
+				then
+					if [[ "$Import_model" == "!" ]]; then
+						Nothing=""
+					else
+						first="import $Import_model" #Imports models
+						echo "$first" >> MadShell     
 					fi
+				fi
 
-					second="launch $Name"	      #Launches the output name generated from the start
-					echo "$second" >> MadShell
-					
-					if [[ "$i" == "1" ]];
-					then
-
-						if [[ "$Pythia" == "yes" ]]; then
-							if [[ "$SimDetector" == "PGS" ]]; then 
-								echo "2" >> MadShell
-							elif [[ "$SimDetector" == "Delphes" ]]; then
-								echo "2" >> MadShell
-								echo "2" >> MadShell
-							elif [[ "$SimDetector" == "Off" ]]; then
-								echo "1" >> MadShell
-							fi
-						fi	
-				
-						if [[ "$MadSpin" == "yes" ]]; then
-							echo "4" >> MadShell
+				second="launch $Name"	      #Launches the output name generated from the start
+				echo "$second"
+				echo "$second" >> MadShell
+				if [[ "$i" == "1" ]];
+				then
+					if [[ "$Pythia" == "yes" ]]; then
+						if [[ "$SimDetector" == "PGS" ]]; then 
+							echo "2" >> MadShell
+						elif [[ "$SimDetector" == "Delphes" ]]; then
+							echo "2" >> MadShell
+							echo "2" >> MadShell
+						elif [[ "$SimDetector" == "Off" ]]; then
+							echo "1" >> MadShell
 						fi
+					fi	
 		
-						if [[ "$Weight" == "yes" ]]; then
-							echo "5" >> MadShell				
-						fi
-						if [[ "$Analysis" == "ExROOT" ]]; then
-							echo "3" >> MadShell
-						fi
-						if [[ "$Analysis" == "Off" ]]; then
-							echo "3" >> MadShell
-							echo "3" >> MadShell
-						fi
+					if [[ "$MadSpin" == "yes" ]]; then
+						echo "4" >> MadShell
 					fi
-					echo "done" >> MadShell
-					echo "done" >> MadShell
-					echo "$extraction" >> Extract
-					echo "$Plot" >> Plotting
-				done
+	
+					if [[ "$Weight" == "yes" ]]; then
+						echo "5" >> MadShell				
+					fi
+					if [[ "$Analysis" == "ExROOT" ]]; then
+						echo "3" >> MadShell
+					fi
+					if [[ "$Analysis" == "Off" ]]; then
+						echo "3" >> MadShell
+						echo "3" >> MadShell
+					fi
+				fi
+				echo "done" >> MadShell
+				echo "$Name/Cards/delphes_card_ATLAS.dat" >> MadShell
+				echo "done" >> MadShell
+				echo "$Plot" >> Plotting
 				echo "exit" >> MadShell
 				unset Pythia
 				unset MadSpin
 				unset Weight
 				unset Import_model
 				unset SimDetector
-				NumberOfRuns=1
 
 				#Standard Settings for MadGraph5 
 				Import_model="!" 
@@ -418,7 +399,6 @@ then
 				Weight="no"
 				MadSpin="no"
 				suboptions="complete"
-				extraction="no"
 				Plot="no"
 			
 			#Enters Pythia/Detector settings
@@ -443,7 +423,7 @@ then
 					elif [[ "$Sim" == "Detector Simulation" ]];
 					then 
 						echo "By enabling detector simulations you also activate Pythia!"
-						Detec=("PGS" "Delphes" "Off")
+						Detec=("PGS" "Delphes (ATLAS)" "Off")
 						select DetecSim in "${Detec[@]}";
 						do
 							[ -n "${DetecSim}" ] && break
@@ -453,7 +433,7 @@ then
 							SimDetector="PGS"
 						elif [[ "$DetecSim" == "Off" ]]; then
 							Pythia="no"
-						elif [[ "$DetecSim" == "Delphes" ]]; then
+						elif [[ "$DetecSim" == "Delphes (ATLAS)" ]]; then
 							Pythia="yes"
 							SimDetector="Delphes"
 						fi
@@ -504,7 +484,6 @@ then
 			#Enters Number of Events 
 			elif [ "$category" == "Edit Number of Events" ];
 			then 		
-				unset i
 				unset Card	
 
 				#Changing the settings in the .dat file using the sed -i (interactive command)				
@@ -517,6 +496,8 @@ then
 			then 
 				#Cleaning Variables 
 				unset Card
+
+
 				BeamLOOP="true"
 				Beams=("Beam1" "Beam2" "Finished")
 				
@@ -535,6 +516,7 @@ then
 					elif [[ "$object" == "Beam1" ]];
 					then
 						unset Card
+	
 						#Changing the settings in the .dat file using the sed -i (interactive command)				
 						Card=run_card.dat
 						read -p "Enter the energy of Beam 1 (GeV): " BeamEV1
@@ -542,36 +524,20 @@ then
 					#===========Beam 2===============
 					elif [[ "$object" == "Beam2" ]];
 					then 
-						unset Card
+
+						unset Card	
+	
 						#Changing the settings in the .dat file using the sed -i (interactive command)				
-						Card1=run_card.dat
+						Card=run_card.dat
 						read -p "Enter the energy of Beam 2 (GeV): " BeamEV2
-						sed -i "/ebeam2/c\     "$BeamEV2"     = ebeam2  ! beam 2 total energy in GeV" $Card1
+						sed -i "/ebeam2/c\     "$BeamEV2"     = ebeam2  ! beam 2 total energy in GeV" $Card
 					fi
 				done
-	
 			#Enters Model to Import
 			elif [ "$category" == "Model to Import" ];
 			then 
 				echo "!!!!!!!!!!!Make sure you READ MadGraph5 instructions!!!!!!!!!!!!!!!!!!"
 				read -p "Please write the model you would like to import (e.g. MSSM...): " Import_model
-
-			#Enters Number of Runs 
-			elif [ "$category" == "Number of Runs" ];
-			then 
-				read -p "How many runs would you like to conduct? " NumberOfRuns
-		
-			#Extraction of LHE files in the run folders
-			elif [ "$category" == "Les Houches Format" ];
-			then 
-				read -p "Would you like to extract the .lhe files in the run folders? (y/n) " extract
-				if [ "$extract" == "n" ];
-				then
-					extraction="no" 
-				elif [ "$extract" == "y" ];
-				then
-					extraction="yes"
-				fi
 
 			#Drawing Plots with the root output 
 			elif [ "$category" == "Plots" ];
@@ -610,38 +576,7 @@ then
 	#Finding the number of MadShell Files
 	cd $directory
 	File=($(find $directory -name "MadShell" )) #<----- MadShell for initial run
-	Ext=($(find $directory -name "Extract" )) #<----Extraction file
 	Plo=($(find $directory -name "Plotting" )) #<----- Plotting File
-	Temp="$(dirname ${File[$total]})/MadShell_temp" #<------- Temp File will be removed
-	MadShellRun="$(dirname ${File[$total]})/MadShellRun" #<---- Remaining run MadShell
-	#______Collects number of total runs and shortens the MadShell file__________#
-	for total in "${!File[@]}";
-	do
-		MadShell=${File[$total]}
-		LesExt=${Ext[$total]}
-		n=($(grep -o "launch" $MadShell | wc -l)) #<----collects the number of runs
-		TotalRuns+=("$n")  
-
-		#==== This section filters settings out of the MadShell File =====# 
-		cat $MadShell | while read line 
-		do 			
-			if [[ $t -le 1 ]];
-			then
-				if  [[ "$line" == "done"* ]];
-				then
-					t=$((t+1))	
-				fi
-				echo "$line" >> $Temp
-			fi
-		done
-		t=0
-		echo "exit" >> $Temp
-		rm $MadShell 
-		mv $Temp $MadShell #<---------- Recreates and renames the existing file for the first run!
-		#=================End===============================================#
-	done
-
-	#The execution loop!!!!
 	for i in "${!File[@]}";
 	do 
 		#===============This is to solve the misname bug========
@@ -654,80 +589,13 @@ then
 
 		done
 		#========= $newname is the actual runs name ============
-		echo "Starting runs in $newname"
+		echo "Starting: $newname"
 
-		######################Creating the MadShellRun##################################
-		echo "launch $newname" >> $MadShellRun
-		echo "done" >> $MadShellRun
-		echo "done" >> $MadShellRun
-		echo "exit" >> $MadShellRun
-		################################################################################
-
-		number=${TotalRuns[$i]}
-		echo "Total Runs for this session: $number"
-		for (( x=1; x <= $number; x++));
-		do
-			#This executes the loops
-			path=${File[$i]}
-			MadRun="$(dirname $path)/MadShellRun"
-			
-			if [[ $x -le 1 ]];
-			then
-				python mg5_aMC "$path" >> ~/MadShell/MadShellLog.txt #<<<<<<< initial run for post launch settings 
-			elif [[ $x -gt 1 ]];
-			then
-				python mg5_aMC "$MadRun" >> ~/MadShell/MadShellLog.txt	#<<<<<<<< Post runs 
-			fi	
-
-			#This is for the progress bar!!!##########
-			unset exact
-			unset prop
-			percent=$((x*100 / number))			
-			per=$((percent/5))
-			for (( progress=0; progress <= $per; progress++));
-			do 
-				increment="="
-				prop="$increment$prop"
-				exact="$prop>"	
-			done
-			echo -ne "progress: $exact $percent % \r"
-		done
-		#This is the Total runs collected!!!
-		echo "completed $number runs for $newname"
+		#This executes the MadGraph5
+		path=${File[$i]}
+		python mg5_aMC "$path" >> ~/MadShell/MadShellLog.txt
+		echo "completed $newname"
 		echo "Time: $(date)"
-		
-		#=====================Using ReadingEvents.py==========================#
-		Les=${Ext[$i]}
-		decision=($(grep -o "no" $Les | wc -l))
-		if [[ "$decision" == "1" ]]; 
-		then
-			echo "No extraction performed"
-		elif [[ "$decision" == "0" ]];
-		then 
-			echo "Extracting Les Houches Format"
-			for (( y=1; y <= $number; y++ )); 
-			do	
-				if [[ $y -lt 10 ]];
-				then
-					t="$directory$newname/Events/run_0$y/unweighted_events.lhe.gz"
-					z="$directory$newname/Events/run_0$y/unweighted_events.gz"
-					mv $t $z
-					gzip -d "$z" 
-					Reading="$directory$newname/Events/run_0$y/unweighted_events"
-				elif [[ $y -ge 10 ]];
-				then
-					t="$directory$newname/Events/run_$y/unweighted_events.lhe.gz"
-					z="$directory$newname/Events/run_$y/unweighted_events.gz"	
-					Reading="$directory$newname/Events/run_$y/unweighted_events"
-					mv $t $z
-					gzip -d "$z" 
-				fi
-				echo " Reading directory: $Reading"
-				ReadingDirec=$(find ~/ -name "ReadingEvents.py" )
-				python "$ReadingDirec" "$Reading"
-			done
-		fi	
-		#===================================================================#
 
 		#============Using DelphesReader.py=================================#
 		Plots=${Plo[$i]}
@@ -737,23 +605,13 @@ then
 			echo "Not plotting Delphes root"
 		elif [[ "$PlotDecision" == "yes" ]];
 		then 
-			for (( y=1; y <= $number; y++ )); 
-			do	
-				if [[ $y -lt 10 ]];
-				then
-					Reading="$directory$newname/Events/run_0$y/tag_1_delphes_events.root"
-				elif [[ $y -ge 10 ]];
-				then	
-					Reading="$directory$newname/Events/run_$y/tag_1_delphes_events.root"
-				fi
-				ReadingDirec=$(find ~/ -name "DelphesReader.py" )
-				python "$ReadingDirec" "$Reading"
-			done
+
+			Reading="$directory$newname/Events/run_0$y/tag_1_delphes_events.root"
+			python "$ReadingDirec" "$Reading"
 		fi	
 		#===================================================================#
 		#Clean Up
 		rm $path
-		rm $Les
 		rm $Plots
 	done
 fi
