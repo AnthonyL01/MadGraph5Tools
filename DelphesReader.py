@@ -47,7 +47,7 @@ def LeptonSize (ET, jets, Electron_size, Muon_size):
 
 #============Lepton Charge Filter===================#
 def LeptonChargeFilter(LeptonArray):
-	Charge = collections.named("Charge",["Minus","Plus"])
+	LeptonCharge = collections.namedtuple("Charge",["Minus","Plus"])
 	LeptonPlus = []
 	LeptonMinus = []
 	for i in range(len(LeptonArray)):
@@ -57,12 +57,30 @@ def LeptonChargeFilter(LeptonArray):
 		index = LeptonArray[i][3]
 		if (Charge == -1):
 			TempE = [ET,Jets,index]
-			Lepton.append(TempE)
+			LeptonMinus.append(TempE)
 		if (Charge == 1):
 			TempP = [ET,Jets,index]
-			Positron.append(TempP) #Continue here to assign array 
+			LeptonPlus.append(TempP) 
+	return LeptonCharge(LeptonMinus,LeptonPlus)
 #==============End Lepton Charge Filter============#
 
+#======================Merger=====================#
+def Merger(LeptonArray1,LeptonArray2):
+	Merger = []
+	for j in range(len(LeptonArray1)):
+		IndexMM = LeptonArray1[j][2]
+		ETMM = LeptonArray1[j][0]
+		JetMM = LeptonArray1[j][1]
+		for i in range(len(LeptonArray2)):
+			IndexP = LeptonArray2[i][2]
+			ETP = LeptonArray2[i][0]
+			JetP = LeptonArray2[i][1]
+			if (IndexP == IndexMM):
+				TempArrayMP = [ETMM,JetMM]
+				Merger.append(TempArrayMP)
+	return Merger
+#====================End Merger====================# 
+			
 #======Extracting Data from Delphes Tree==========#
 def TreeLeaves ( directory, TreeName, LeafName):
 	LeafValues = []
@@ -238,9 +256,9 @@ for i in histnames:
 NewFile.Close()
 
 #=====Adjust these to fit isabelles data =====
-names = ["pptt"]		#,"ppWj","ppWW","ppWZ","ppZj","ppZZ"]
-Scales = [1] #, 1, 1, 1, 1, 1]
-processes = ["ttbar"]		#,"Wjets","WW","WZ","Zjets", "ZZ"]
+names = ["pptt","ppWj","ppWW","ppWZ","ppZj","ppZZ"]
+Scales = [1, 1, 1, 1, 1, 1]
+processes = ["ttbar","Wjets","WW","WZ","Zjets", "ZZ"]
 
 for i in range(len(names)):
 	name = names[i]
@@ -252,76 +270,43 @@ for i in range(len(names)):
 	ElectronCharge = RootReading(directory, TreeNames, "Electron","Electron.Charge")
 	MuonCharge = RootReading(directory, TreeNames, "Muon","Muon.Charge")
 	
+	#Arrays
 	MuonArray = []
 	ElectronArray = []
+	MuPlusElectron = []
+	MuMinusPositron = []
+	x = []
+	y = []
 	
 	#Filters the Electrons and Muons from the ROOT file with their missing ET
 	Leptons = LeptonSize(ET,jets,Electron_size,Muon_size)
 	MuonArray=Leptons.Muon
 	ElectronArray=Leptons.Electron
 
-	#Capture particles 
-	Electron = []
-	MuonMinus = []
-	Positron = []
-	MuonPlus = []
+	#Categorizing leptons according to charge 
+	ElectronCharge = LeptonChargeFilter(ElectronArray)
+	Electron = ElectronCharge.Minus
+	Positron = ElectronCharge.Plus
+	MuonCharge = LeptonChargeFilter(MuonArray)
+	MuonMinus = MuonCharge.Minus
+	MuonPlus = MuonCharge.Plus
 
-#Filters the Electrons according to Charge 
-for i in range(len(ElectronArray)):
-	ET = ElectronArray[i][0]
-	Charge = ElectronArray[i][1]
-	Jets = ElectronArray[i][2]
-	index = ElectronArray[i][3]
-	if (Charge == -1):
-		TempE = [ET,Jets,index]
-		Electron.append(TempE)
-	if (Charge == 1):
-		TempP = [ET,Jets,index]
-		Positron.append(TempP)
-
-#Filters the Muon according to Charge 
-for i in range(len(MuonArray)):
-	ET = MuonArray[i][0]
-	Charge = MuonArray[i][1]
-	Jets = MuonArray[i][2]
-	index = MuonArray[i][3]
-	if (Charge == -1):
-		TempM = [ET,Jets ,index] #Negatively charged muon
-		MuonMinus.append(TempM)
-	if (Charge == 1):
-		TempP = [ET,Jets ,index] #Positively charged muon
-		MuonPlus.append(TempP)
-		
-#Collecting the particle combination
-MuPlusElectron = []
-MuMinusPositron = []
-
-#Selecting Matching index and criteria 
-#This is for the MuonMinus-Positron Dilepton pair
-for j in range(len(MuonMinus)):
-	IndexMM = MuonMinus[j][2]
-	ETMM = MuonMinus[j][0]
-	JetMM = MuonMinus[j][1]
-	for i in range(len(Positron)):
-		IndexP = Positron[i][2]
-		ETP = Positron[i][0]
-		JetP = Positron[i][1]
-		if (IndexP == IndexMM):
-			TempArrayMP = [ETMM,JetMM]
-			MuMinusPositron.append(TempArrayMP)
-
-#This is for the MuonPlus-Electron Dilepton pair
-for j in range(len(MuonPlus)):
-	ETMP = MuonPlus[j][0]
-	JetMP = MuonPlus[j][1]
-	IndexMP = MuonPlus[j][2]
-	for i in range(len(Electron)):
-		ETE = Electron[i][0]
-		JetE = Electron[i][1]
-		IndexE = Electron[i][2]
-		if (IndexMP == IndexE):
-			TempArrayME = [ETMP,ETE,JetMP,JetE]
-			print(TempArrayME)
-			MuPlusElectron.append(TempArrayME)
-
-#Creates the Histograms for all the processes after the filtering 
+	#This uses index matching to determine the nature of the individual events
+	MuMinusPositron = Merger(MuonMinus,Positron)
+	MuPlusElectron = Merger(MuonPlus,Electron)
+	Total = MuMinusPositron + MuPlusElectron 
+	
+	#Creates the Histograms for all the processes after the filtering 
+      	#Defined function at the beginning of script
+      	for j in range(len(Total)):
+		ET = Total[j][0]
+		Jets = Total[j][1]
+		x.append(ET)
+		y.append(Jets)
+	scaling = Scales[i]
+	process = processes[i]
+	Jet1 = JetFilter(x,y,0) #<----
+	ETJ0 = Jet1.JetCut
+	ETRemain = Jet1.JetRemain
+	HistoJet ( "jets", process,ETRemain, SaveHistROOT,scaling )
+	HistoJet ( "jets0", process, ETJ0, SaveHistROOT,scaling )
