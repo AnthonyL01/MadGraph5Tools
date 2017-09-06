@@ -20,6 +20,49 @@ def RootReading ( directory, TreeName , Branch, LeafName ):
 	return LeafValues
 #===============End RootReading===================#
 
+#================Lepton Size=======================#
+def LeptonSize (ET, jets, Electron_size, Muon_size):
+	Lepton = collections.namedtuple("Lepton",["Muon","Electron"])
+	Muon = []
+	Electron = []
+	eq = 0
+	muq = 0
+	for j in range(len(ET)):
+		Jet = jets[j]
+		ElectronSize = Electron_size[j]
+		MuonSize = Muon_size[j]
+		MissingET = ET[j]
+		if (ElectronSize == 1):
+			ElecCharge = ElectronCharge[eq] 
+			collectEl = [MissingET, ElecCharge, Jet, j]
+			Electron.append(collectEl)
+			eq = eq + 1
+		if (MuonSize == 1):
+			MuCharge = MuonCharge[muq]
+			collectMu = [MissingET, MuCharge, Jet, j]
+			Muon.append(collectMu)
+			muq = muq + 1
+	return Lepton(Muon,Electron)
+#=============End Lepton Size======================#
+
+#============Lepton Charge Filter===================#
+def LeptonChargeFilter(LeptonArray):
+	Charge = collections.named("Charge",["Minus","Plus"])
+	LeptonPlus = []
+	LeptonMinus = []
+	for i in range(len(LeptonArray)):
+		ET = LeptonArray[i][0]
+		Charge = LeptonArray[i][1]
+		Jets = LeptonArray[i][2]
+		index = LeptonArray[i][3]
+		if (Charge == -1):
+			TempE = [ET,Jets,index]
+			Lepton.append(TempE)
+		if (Charge == 1):
+			TempP = [ET,Jets,index]
+			Positron.append(TempP) #Continue here to assign array 
+#==============End Lepton Charge Filter============#
+
 #======Extracting Data from Delphes Tree==========#
 def TreeLeaves ( directory, TreeName, LeafName):
 	LeafValues = []
@@ -32,26 +75,6 @@ def TreeLeaves ( directory, TreeName, LeafName):
 		LeafValues.append(Leaf)
 	return LeafValues
 #===========End Delphes Tree =====================#
-
-#=========== Validation and Signal Regions =======#
-def Region ( MissingET, NumberOfJets, GreEqu ):
-	Output = collections.namedtuple("Output",["SRET" , "SRJTS", "VRET", "VRJTS"])
-	SRMissingET = []
-	SRJets = []
-	VRMissingET = []
-	VRJets = []
-	length = len(MissingET)
-	for i in range(length):	
-		cut = MissingET[i]
-		jets = NumberOfJets[i]
-		if ( cut < GreEqu ): # <---- Signal Region
-			SRMissingET.append(cut)
-			SRJets.append(jets)
-		if ( cut >= GreEqu ): # <------ Validation Region
-			VRMissingET.append(cut)
-			VRJets.append(jets)	
-	return Output(SRMissingET, SRJets, VRMissingET, VRJets )
-#======= End Validation and Signal Regions ========#
 
 #=============Jet Filter ==========================#
 def JetFilter ( MissingET, NumberOfJets, limit ):
@@ -70,7 +93,7 @@ def JetFilter ( MissingET, NumberOfJets, limit ):
 #==============End Jet Filter ======================#
 
 #============HistoJet ==============================#
-def HistoJet ( label, Process, MissingET, SaveHistROOT ):
+def HistoJet ( label, Process, MissingET, SaveHistROOT,scaling ):
 	f = ROOT.TFile.Open(SaveHistROOT,"UPDATE")
 	StringOfName = "h" + Process +"Nom_" + label + "_obs_met"
 	max_size = 200
@@ -81,60 +104,26 @@ def HistoJet ( label, Process, MissingET, SaveHistROOT ):
 	for i in range(lengthy):
 		temp = MissingET[i]
 		h1.Fill(temp)
+	h1.Scale(scaling)
 	h1.Write()
 	f.Close()
-#============End HistoJet ===============================#
+#=============End HistoJet ===============================#
 
-#=========== HistogramsRegion ===========================#
-def HistoGramsRegion ( Region, Process, Jets, SaveHistROOT ):
-	f = ROOT.TFile(SaveHistROOT,"UPDATE")
-	StringOfName = "h" + Process +"_" + Region + "_obs_njets"
-	max_size = int(max(Jets))
-	min_size = int(min(Jets))
-	delta = max_size - min_size
-	lengthy = len(Jets)
-	#_______First Historgam__________#
-	h1 = ROOT.TH1F(StringOfName,StringOfName,delta,min_size,max_size)
-	for i in range(lengthy):
-		temp = Jets[i]
-		h1.Fill(temp)
 
-	#_____Second Histogram___________#
-	h2 = ROOT.TH1F(StringOfName,StringOfName,3,0,3)
-	for i in range(lengthy):
-		temp = Jets[i]
-		h2.Fill(temp)
-
-	#______Third Histogram___________#
-	h3 = ROOT.TH1F(StringOfName,StringOfName,2,0,3)
-	for i in range(lengthy):
-		temp = Jets[i]
-		h3.Fill(temp)
-
-	#____ creating Root File for Histograms______________#
-	h1.Write()
-	h2.Write()
-	h3.Write()
-	f.Close()
-#===========End HistogramRegion ==========================#
 
 ############Program Start##########################
 
 #============Future Input agruments===============#
-#directory = str(sys.argv[1]) 
-#Process = str(sys.argv[1])
-#Cuty = int(sys.argv[2])
 
-directory= str("~/Programs/MadGraph/bin/ttpp/Events/run_01/tag_1_delphes_events.root")
+directory= str("~/Programs/MadGraph/bin/pptt/Events/run_01/tag_1_delphes_events.root")
 directory2 = str("~/MadShell/Data/histo14.root")
 SaveHistROOT = str("~/MadShell/Results/Results.root")
 TreeNames = "Delphes"
 BranchName = "MissingET"
-LeafNamey = "Jet_size"
 LeafNamex = "MissingET.MET"
+scaling = 1
 
 #===========End Future Input arguments============#
-
 
 
 #____________Performing Cuts in the array__________#
@@ -238,7 +227,6 @@ for i in histnames:
 		continue
 	if (kname == "hZjetsJETEffectiveNPLow_jets0_obs_met" ):
 		continue
-
 	if (kname == "hRatioNom_jets_obs_met" ):
 		continue
 	if (kname == "hRatioNom_jets0_obs_met" ):
@@ -247,20 +235,93 @@ for i in histnames:
 		hist = i.ReadObj()
 		h = histfile.Get(kname)
 		h.Write()
-
 NewFile.Close()
+
 #=====Adjust these to fit isabelles data =====
-names = ["pptt","ppWj","ppWW","ppWZ","ppZj","ppZZ"]
-length = len(names)
-processes = ["ttbar","Wjets","WW","WZ","Zjets", "ZZ"]
-for i in range(length):
+names = ["pptt"]		#,"ppWj","ppWW","ppWZ","ppZj","ppZZ"]
+Scales = [1] #, 1, 1, 1, 1, 1]
+processes = ["ttbar"]		#,"Wjets","WW","WZ","Zjets", "ZZ"]
+
+for i in range(len(names)):
 	name = names[i]
-	process = processes[i]
 	directory= str("~/Programs/MadGraph/bin/"+ name +"/Events/run_01/tag_1_delphes_events.root")
-	x = RootReading(directory, TreeNames, BranchName, LeafNamex) #Defined function at the beginning of script 
-	y = TreeLeaves(directory, TreeNames, LeafNamey)	      #Defined function at the beginning of script
-	Jet1 = JetFilter(x,y,0) #<----
-	ETJ0 = Jet1.JetCut
-	ETRemain = Jet1.JetRemain
-	HistoJet ( "jets", process,ETRemain, SaveHistROOT )
-	HistoJet ( "jets0", process, ETJ0, SaveHistROOT )
+	ET = RootReading(directory, TreeNames, BranchName, LeafNamex) 	#Defined function at the beginning of script 
+	Electron_size = TreeLeaves(directory, TreeNames, "Electron_size")
+	Muon_size = TreeLeaves(directory, TreeNames, "Muon_size")
+	jets = TreeLeaves(directory, TreeNames, "Jet_size")
+	ElectronCharge = RootReading(directory, TreeNames, "Electron","Electron.Charge")
+	MuonCharge = RootReading(directory, TreeNames, "Muon","Muon.Charge")
+	
+	MuonArray = []
+	ElectronArray = []
+	
+	#Filters the Electrons and Muons from the ROOT file with their missing ET
+	Leptons = LeptonSize(ET,jets,Electron_size,Muon_size)
+	MuonArray=Leptons.Muon
+	ElectronArray=Leptons.Electron
+
+	#Capture particles 
+	Electron = []
+	MuonMinus = []
+	Positron = []
+	MuonPlus = []
+
+#Filters the Electrons according to Charge 
+for i in range(len(ElectronArray)):
+	ET = ElectronArray[i][0]
+	Charge = ElectronArray[i][1]
+	Jets = ElectronArray[i][2]
+	index = ElectronArray[i][3]
+	if (Charge == -1):
+		TempE = [ET,Jets,index]
+		Electron.append(TempE)
+	if (Charge == 1):
+		TempP = [ET,Jets,index]
+		Positron.append(TempP)
+
+#Filters the Muon according to Charge 
+for i in range(len(MuonArray)):
+	ET = MuonArray[i][0]
+	Charge = MuonArray[i][1]
+	Jets = MuonArray[i][2]
+	index = MuonArray[i][3]
+	if (Charge == -1):
+		TempM = [ET,Jets ,index] #Negatively charged muon
+		MuonMinus.append(TempM)
+	if (Charge == 1):
+		TempP = [ET,Jets ,index] #Positively charged muon
+		MuonPlus.append(TempP)
+		
+#Collecting the particle combination
+MuPlusElectron = []
+MuMinusPositron = []
+
+#Selecting Matching index and criteria 
+#This is for the MuonMinus-Positron Dilepton pair
+for j in range(len(MuonMinus)):
+	IndexMM = MuonMinus[j][2]
+	ETMM = MuonMinus[j][0]
+	JetMM = MuonMinus[j][1]
+	for i in range(len(Positron)):
+		IndexP = Positron[i][2]
+		ETP = Positron[i][0]
+		JetP = Positron[i][1]
+		if (IndexP == IndexMM):
+			TempArrayMP = [ETMM,JetMM]
+			MuMinusPositron.append(TempArrayMP)
+
+#This is for the MuonPlus-Electron Dilepton pair
+for j in range(len(MuonPlus)):
+	ETMP = MuonPlus[j][0]
+	JetMP = MuonPlus[j][1]
+	IndexMP = MuonPlus[j][2]
+	for i in range(len(Electron)):
+		ETE = Electron[i][0]
+		JetE = Electron[i][1]
+		IndexE = Electron[i][2]
+		if (IndexMP == IndexE):
+			TempArrayME = [ETMP,ETE,JetMP,JetE]
+			print(TempArrayME)
+			MuPlusElectron.append(TempArrayME)
+
+#Creates the Histograms for all the processes after the filtering 
