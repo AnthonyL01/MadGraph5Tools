@@ -340,47 +340,44 @@ then
 				#Used Variables: Pythia, SimDetector, MadSpin, Weight, Import_model , NumberOfRuns, Name
 				rm MadShell > /dev/null 2>&1 #This removes any existing MadShell settings file.
 				rm Plotting > /dev/null 2>&1
-				if [[ "$i" == "1" ]];
-				then
-					if [[ "$Import_model" == "!" ]]; then
-						Nothing=""
-					else
-						first="import $Import_model" #Imports models
-						echo "$first" >> MadShell     
-					fi
+				if [[ "$Import_model" == "!" ]]; then
+					Nothing=""
+				else
+					first="import $Import_model" #Imports models
+					echo "$first" >> MadShell     
 				fi
 
 				second="launch $Name"	      #Launches the output name generated from the start
 				echo "$second"
 				echo "$second" >> MadShell
-				if [[ "$i" == "1" ]];
-				then
-					if [[ "$Pythia" == "yes" ]]; then
-						if [[ "$SimDetector" == "PGS" ]]; then 
-							echo "2" >> MadShell
-						elif [[ "$SimDetector" == "Delphes" ]]; then
-							echo "2" >> MadShell
-							echo "2" >> MadShell
-						elif [[ "$SimDetector" == "Off" ]]; then
-							echo "1" >> MadShell
-						fi
-					fi	
+				if [[ "$Pythia" == "yes" ]]; then
+					if [[ "$SimDetector" == "PGS" ]]; then 
+						echo "2" >> MadShell
+					elif [[ "$SimDetector" == "Delphes" ]]; then
+						echo "2" >> MadShell
+						echo "2" >> MadShell
+					elif [[ "$SimDetector" == "Off" ]]; then
+						echo "1" >> MadShell
+					fi
+				fi	
 		
-					if [[ "$MadSpin" == "yes" ]]; then
-						echo "4" >> MadShell
-					fi
-	
-					if [[ "$Weight" == "yes" ]]; then
-						echo "5" >> MadShell				
-					fi
-					if [[ "$Analysis" == "ExROOT" ]]; then
-						echo "3" >> MadShell
-					fi
-					if [[ "$Analysis" == "Off" ]]; then
-						echo "3" >> MadShell
-						echo "3" >> MadShell
-					fi
+				if [[ "$MadSpin" == "yes" ]]; then
+					echo "4" >> MadShell
 				fi
+				
+				if [[ "$Weight" == "yes" ]]; then
+					echo "5" >> MadShell				
+				fi
+				
+				if [[ "$Analysis" == "ExROOT" ]]; then
+					echo "3" >> MadShell
+				fi
+				
+				if [[ "$Analysis" == "Off" ]]; then
+					echo "3" >> MadShell
+					echo "3" >> MadShell
+				fi
+				
 				echo "done" >> MadShell
 				echo "$Name/Cards/delphes_card_ATLAS.dat" >> MadShell
 				echo "done" >> MadShell
@@ -593,7 +590,8 @@ then
 
 		#This executes the MadGraph5
 		path=${File[$i]}
-		python mg5_aMC "$path" >> ~/MadShell/MadShellLog.txt
+		python mg5_aMC "$path"  >> ~/MadShell/MadShellLog.txt
+		#This is the Total runs collected!!!
 		echo "completed $newname"
 		echo "Time: $(date)"
 
@@ -607,7 +605,7 @@ then
 		then 
 
 			Reading="$directory$newname/Events/run_0$y/tag_1_delphes_events.root"
-			python "$ReadingDirec" "$Reading"
+			#python "$ReadingDirec" "$Reading"  <--------------Fix later on!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		fi	
 		#===================================================================#
 		#Clean Up
