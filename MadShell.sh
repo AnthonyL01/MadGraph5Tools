@@ -210,7 +210,7 @@ then
 fi
 #============= Actually creating Directories ===================#
 echo "Generating the Files and directories!"
-python mg5_aMC MadShell > /dev/null 2>&1
+python mg5_aMC MadShell
 rm MadShell
 
 #=======================removing variables=======================# 
@@ -590,7 +590,7 @@ then
 
 		#This executes the MadGraph5
 		path=${File[$i]}
-		python mg5_aMC "$path"  >> ~/MadShell/MadShellLog.txt
+		python mg5_aMC "$path"
 		#This is the Total runs collected!!!
 		echo "completed $newname"
 		echo "Time: $(date)"
