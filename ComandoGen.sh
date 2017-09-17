@@ -2,51 +2,67 @@
 #!/bin/bash
 #!/bin/ipython
 #============Generator text===================#
-initial=("1" "p p > t t~; p p > W- j; p p > W+ W-; p p > W- Z; p p > Z j; p p > Z Z;" "pptt; ppWj; ppWW; ppWZ; ppZj; ppZZ;" "y" "2" "p p > W+ j;" "4" "p p > W+ Z;" "7" "y")
+
+#======== Input arguments ============#
+worker=$1
+Beam1=$2
+Beam2=$3
+EndIteration=$4
+CommandsDir=$5
+SimulationName=$6
+Collection=$7
+DelphesPT=$8
+DelphesFC=$9
+FLC=${10}
+PT=${11}
+MadShellDir=${12}
+MuonPT=${13}
+ElectronPT=${14}
+JetPT=${15}
+#======================================#
+
+selector=$((worker+2))
+initial=("$selector" "p p > t t~; p p > W- j; p p > W+ W-; p p > W- Z; p p > Z j; p p > Z Z;" "pptt; ppWj; ppWW; ppWZ; ppZj; ppZZ;" "y" "2" "p p > W+ j;" "4" "p p > W+ Z;" "7" "y")
 EventsInProcess=("" "50000" "50000" "50000" "50000" "50000" "50000")
 NumberOfProcess=6
-inside=("3" "1" "6500" "2" "6500" "3" "1" "2" "2" "6" "2")
+inside=("3" "1" "$Beam1" "2" "$Beam2" "3" "1" "2" "2" "6" "2")
 ProcessNames=("pptt" "ppWj" "ppWW" "ppWZ" "ppZj" "ppZZ")
-cd ~/Programs/HistFitter/
-source setup.sh
-cd ~/MadShell/
-mkdir Plots
-iterations=1000
-for ((x=1; x<= $iterations; x++));
+for ((x=1; x<= $EndIteration; x++));
 do
-	rm ~/MadShell/Commands.txt
+	ComandGen=$CommandsDir/Commands$worker.txt
+	sleep 5
+	rm $ComandGen > /dev/null 2>&1
 	for command in "${initial[@]}"; #<----- writing the initial script for MadShell
 	do
-		echo "$command" >> Commands.txt
+		echo "$command" >> $ComandGen
 	done
 	for ((t=1; t<= $NumberOfProcess; t++));
 	do
-		echo "$t" >> Commands.txt
+		echo "$t" >> $ComandGen
 		for z in "${inside[@]}";
 		do
-			echo "$z" >> Commands.txt
+			echo "$z" >> $ComandGen
 		done
 		processevent="${EventsInProcess[$t]}"
-		echo "$processevent" >> Commands.txt  
-		echo "6" >> Commands.txt
+		echo "$processevent" >> $ComandGen 
+		echo "6" >> $ComandGen
 	done
-	echo "7" >> Commands.txt
-	#bash MadShell.sh < Commands.txt
-	sleep 5
-	#python DelphesReader.py 
-	#HistFitter.py -w -f -D "before,after" /home/tnom6927/MadShell/Data/MyOneBinExample_6Tom.py >> HistFitterLog.txt
-	#cd ~/MadShell/results/Results
-	#mv can_jets0_met_afterFit.pdf ~/MadShell/Plots/can_jets0_met_afterFit.pdf
-	#mv can_jets0_met_beforeFit.pdf ~/MadShell/Plots/can_jets0_met_beforeFit.pdf
-	#mv can_jets_met_afterFit.pdf ~/MadShell/Plots/can_jets_met_afterFit.pdf
-	#mv can_jets_met_beforeFit.pdf ~/MadShell/Plots/can_jets_met_beforeFit.pdf
-	#cd ~/MadShell
-	#rm -rf results data config Commands.txt
+	echo "7" >> $ComandGen
+	echo "w:$worker number:$x , dir:$ComandGen Time: $(date)"
+	bash $MadShellDir < $ComandGen 
+	
+	#====Copying the data to a different location====#
 	for copy in "${ProcessNames[@]}";
 	do 
-		DelphesROOT=~/Programs/MadGraph/bin/$copy/Events/run_01/tag_1_delphes_events.root
-		destination=~/MadShell/SimulationData/Delphes_Event$copy$x
+		mkdir $SimulationName/$worker > /dev/null 2>&1
+		echo "Copying $copy"
+		DelphesROOT=$CommandsDir/bin/$copy/Events/run_01/tag_1_delphes_events.root
+		destination=$SimulationName/$worker/Delphes_Event$copy$worker$x.root
 		cp $DelphesROOT $destination
 	done
+	
+	#=====Initiating the Filtering process==========#
+	FileDir=$SimulationName/$worker/*
+	bash $Collection "$FileDir" "$DelphesPT" "$DelphesFC" "$FLC" "$PT" "$MuonPT" "$ElectronPT" "$JetPT" > /dev/null 2>&1
 done
-#python Extractor.py
+
