@@ -3,7 +3,7 @@ import sys
 
 #This function merges root files with Histograms
 def CombinedROOT(Files, NameJet, NameJet0):
-	Combined = ROOT.TFile.Open("~/Merged.root","UPDATE")
+	Combined = ROOT.TFile.Open("~/MadShell/PostAnalysisTools/FCMerged.root","UPDATE")
 	j = str(NameJet)
 	j0 = str(NameJet0)
 	jet = ROOT.TH1F(j,"",0,0,0)
