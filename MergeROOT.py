@@ -42,7 +42,10 @@ for i in Names:
 	for entry in Hist:
 		HistoName = entry.GetName()
 		temp.append(HistoName)
-	Collect = [i,temp[0],temp[1]]
+	if (temp == []):
+		continue
+	else: 	
+		Collect = [i,temp[0],temp[1]]
 	HistNames.append(Collect)
 
 HistNames.sort(reverse = True)
