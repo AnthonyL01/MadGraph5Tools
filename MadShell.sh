@@ -5,16 +5,11 @@
 #==========================Setting the directory of MadGraph 5=========================#
 echo -e "\e[1;34m Welcome to MadShell! By Thomas Nommensen\e[0m"
 #Finding the directories which have MadGraph 5
-MadGraph=($(find ~/ -name "mg5_aMC" ))
 
-#Waiting for user input which directory is correct
-echo "Please select MadGraph 5 directory:"
-select dir in "${MadGraph[@]}";
-do
-	[ -n "${dir}" ] && break
-done
+read -p "Worker: " worker
 
 #Extract the directory and change to it!
+dir=$HOME/MadGraphShell/Workers/x/bin/mg5_aMC.py       #MadGraph$worker/bin/mg5_aMC.py
 directory="$(dirname $dir)/"
 cd $directory
 #Removing any existing files
@@ -257,7 +252,7 @@ Analysis="Off"
 
 
 #Adding a finish option to menu
-selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Plots" "Finished")
+selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Parton Density Functions" "Finished")
 
 #User interaction point
 read -p "Would you like to edit these processes? (y/n): " options
@@ -278,8 +273,7 @@ then
 		then 	
 			for name in "${Names[@]}";
 			do			
-				place=$directory$name/Cards/MadShell
-				Plotting=$directory$name/Cards/Plotting	
+				place=$directory$name/Cards/MadShell	
 				if [[ -f "$place" ]];			
 				then			
 					continue
@@ -289,15 +283,6 @@ then
 					echo "$second" >> MadShell
 					echo "done" >> MadShell
 					echo "done" >> MadShell
-					cd $directory
-				fi
-
-				if [[ -f "$Plotting" ]];			
-				then			
-					continue
-				else	
-					cd $directory$name/Cards/				
-					echo "no" >> Plotting
 					cd $directory
 				fi
 				
@@ -327,7 +312,7 @@ then
 		echo "Chose one of the options below"
 		while [ "$suboptions" == "incomplete" ];
 		do
-			echo -e "You have chosen; Process: \e[1;32m"$process"\e[0m" "Name: \e[1;32m"$Name"\e[0m" ", Number of Events: \e[1;32m"$Evnts"\e[0m, Beam Energy, 1: \e[1;32m"$BeamEV1"\e[0m 2: \e[1;32m"$BeamEV2"\e[0m, Model: \e[1;32m"$Import_model"\e[0m, Plotting: \e[1;32m"$Plot"\e[0m"  
+			echo -e "You have chosen; Process: \e[1;32m"$process"\e[0m" "Name: \e[1;32m"$Name"\e[0m" ", Number of Events: \e[1;32m"$Evnts"\e[0m, Beam Energy, 1: \e[1;32m"$BeamEV1"\e[0m 2: \e[1;32m"$BeamEV2"\e[0m, Model: \e[1;32m"$Import_model"\e[0m"
 			select category in "${selections[@]}";
 			do
 				[ -n "${category}" ] && break
@@ -381,7 +366,6 @@ then
 				echo "done" >> MadShell
 				echo "$Name/Cards/delphes_card_ATLAS.dat" >> MadShell
 				echo "done" >> MadShell
-				echo "$Plot" >> Plotting
 				echo "exit" >> MadShell
 				unset Pythia
 				unset MadSpin
@@ -396,7 +380,6 @@ then
 				Weight="no"
 				MadSpin="no"
 				suboptions="complete"
-				Plot="no"
 			
 			#Enters Pythia/Detector settings
 			elif [ "$category" == "Pythia/Detector" ];
@@ -535,21 +518,24 @@ then
 			then 
 				echo "!!!!!!!!!!!Make sure you READ MadGraph5 instructions!!!!!!!!!!!!!!!!!!"
 				read -p "Please write the model you would like to import (e.g. MSSM...): " Import_model
-
-			#Drawing Plots with the root output 
-			elif [ "$category" == "Plots" ];
-			then 
-				echo -e  "(\e[1;31mThis will enable Pythia and Delphes!\e[0m)"
-				read -p "Would you like to produce a histogram of the Delphes output? (y/n) " Plotting
-				if [ "$Plotting" == "n" ];
+			
+			#Parton Density Functions selection 
+			elif [ "$category" == "Parton Density Functions" ];
+			then
+				echo -e  "(\e[1;31mThis changes the Parton Density function of the collision (Default ID: 230000). If you change these make sure you visit https://lhapdf.hepforge.org/pdfsets.html for lhapdf6 ID!\e[0m)"
+				read -p "Would you like to edit the PDF? (y/n) " pdf
+				if [ "$pdf" == "y" ];
+				then 
+					read -p "Please enter the LHAPDF ID " lhapdf6id
+					Card=run_card.dat
+					label=lhapdf
+					sed -i "/PDF set/c\     "$label"    = pdlabel     ! PDF set" $Card
+					sed -i "/this is the lhapdf number/c\     "$lhapdf6id"    = lhaid     ! if pdlabel=lhapdf, this is the lhapdf number" $Card
+				elif [ "$pdf" == "n" ];
 				then
-					Plot="no"
-				elif [ "$Plotting" == "y" ];
-				then
-					Plot="yes"
-					Pythia="yes"
-					SimDetector="Delphes"
+					no="close"
 				fi
+				
 			fi
 		done
 
