@@ -255,6 +255,7 @@ Analysis="Off"
 selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Parton Density Functions" "Finished")
 
 #User interaction point
+echo "If you have enabled [QCD] at the end of the process dont enable pythia because its already enabled!"
 read -p "Would you like to edit these processes? (y/n): " options
 if [ "$options" == "y" ];
 then 
