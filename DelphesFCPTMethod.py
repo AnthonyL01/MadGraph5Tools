@@ -61,7 +61,7 @@ output = sys.argv[5]
 SaveHistROOT = str(output+"/"+DelphFile)
 
 #===========End Future Input arguments============#
-
+print(SaveHistROOT)
 NewFile = ROOT.TFile(SaveHistROOT, "RECREATE")
 NewFile.Close()
 TreeNames="Delphes"
@@ -138,7 +138,7 @@ for i in range(1):
 			tempJ0 = [EvID,MissingET,JetS]
 			Jet0.append(tempJ0)
 		EvID = EvID + 1
-
+	print("Finished reading")
 	#Performing the cuts on the arrays: 
 	ECutPT = 25
 	ECutEta = 2.47
@@ -183,7 +183,8 @@ for i in range(1):
 		else:
 			Reject = [EventID,MissingET,NumberJet]
 			RejectedJet.append(Reject)
-
+	
+	print("Finished Cutting")
 	#Comparing the lepton arrays and enforcing opposite charge 
 	#this then leads to opposite charge and opposite flavor
 	OpFlOpCh = []
@@ -238,6 +239,7 @@ for i in range(1):
 				temps = [ID,Energy]
 				Jet.append(temps)
 			EID = EID +1
+	print("ET Recovery")
 	#===================================================================#
 	#now compare events in both Jets and OpFlOpCh to find the events which
 	#are responsible for the dilepton events 
@@ -245,6 +247,8 @@ for i in range(1):
 	for dl in range(len(OpFlOpCh)):
 		EventIDL = OpFlOpCh[dl][0]
 		MissingET = OpFlOpCh[dl][1]
+		if ( MissingET >= 200 ):
+			MissingET = 200
 		for j in range(len(Jet)):
 			EventIDJ = Jet[j][0]
 			if (EventIDL == EventIDJ):
@@ -270,9 +274,15 @@ for i in range(1):
 	JetET = []
 	Jet0ET = []
 	for e in range(len(Jets)):
-		JetET.append(Jets[e][1])
+		ET = Jets[e][1]
+		if (ET > 200):
+			ET = 200
+		JetET.append(ET)
 	for x in range(len(Jet0)):
-		Jet0ET.append(Jet0[x][1])
-
+		ET0 = Jet0[e][1]
+		if (ET > 200):
+			ET = 200
+		Jet0ET.append(ET0)
+	print("Placing new Data in .root")
 	HistoJet ( "jets", process,JetET, SaveHistROOT,1 )
 	HistoJet ( "jets0", process, Jet0ET, SaveHistROOT,1 )
