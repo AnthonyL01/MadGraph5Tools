@@ -39,9 +39,9 @@ do
 		done
 		processevent="${EventsInProcess[$t]}"
 		echo "$processevent" >> $ComandGen 
-		echo "6" >> $ComandGen
+		echo "5" >> $ComandGen
 	done
-	echo "7" >> $ComandGen
+	echo "8" >> $ComandGen
 	echo "w:$worker number:$x , dir:$ComandGen Time: $(date)"
 	bash $MadShellDir < $ComandGen 
 	
