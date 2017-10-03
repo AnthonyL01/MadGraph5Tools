@@ -17,7 +17,7 @@ MadShellDir=${10}
 #======================================#
 
 initial=("$worker" "sm-ckm" "p p > t t~ QED=2 @4; p p > W- j QED=2 @4; p p > W+ W- QED=2 @4; p p > W- Z QED=2 @4; p p > Z j QED=2 @4; p p > Z Z QED=2 @4; p p > W- t QED=2 @4;" "pptt; ppWj; ppWW; ppWZ; ppZj; ppZZ; ppWt;" "y" "2" "p p > W+ j;" "4" "p p > W+ Z;" "8" "y")
-EventsInProcess=("" "50000" "50000" "50000" "50000" "50000" "50000")
+EventsInProcess=("" "100" "100" "100" "100" "100" "100")
 NumberOfProcess=6
 inside=("3" "1" "$Beam1" "2" "$Beam2" "3" "1" "2" "2" "4" "y" "6" "4" "y" "13000" "2")
 ProcessNames=("pptt" "ppWj" "ppWW" "ppWZ" "ppZj" "ppZZ")
