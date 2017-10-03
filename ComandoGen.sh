@@ -11,21 +11,15 @@ EndIteration=$4
 CommandsDir=$5
 SimulationName=$6
 Collection=$7
-DelphesPT=$8
-DelphesFC=$9
-FLC=${10}
-PT=${11}
-MadShellDir=${12}
-MuonPT=${13}
-ElectronPT=${14}
-JetPT=${15}
+Output=$8
+DelphesFCPTReader=$9
+MadShellDir=${10}
 #======================================#
 
-selector=$((worker+2))
-initial=("$selector" "p p > t t~; p p > W- j; p p > W+ W-; p p > W- Z; p p > Z j; p p > Z Z;" "pptt; ppWj; ppWW; ppWZ; ppZj; ppZZ;" "y" "2" "p p > W+ j;" "4" "p p > W+ Z;" "7" "y")
+initial=("$worker" "p p > t t~; p p > W- j; p p > W+ W-; p p > W- Z; p p > Z j; p p > Z Z;" "pptt; ppWj; ppWW; ppWZ; ppZj; ppZZ;" "y" "2" "p p > W+ j;" "4" "p p > W+ Z;" "7" "y")
 EventsInProcess=("" "50000" "50000" "50000" "50000" "50000" "50000")
 NumberOfProcess=6
-inside=("3" "1" "$Beam1" "2" "$Beam2" "3" "1" "2" "2" "6" "2")
+inside=("3" "1" "$Beam1" "2" "$Beam2" "3" "1" "2" "2" "4" "y" "6" "5" "y" "13000" "2")
 ProcessNames=("pptt" "ppWj" "ppWW" "ppWZ" "ppZj" "ppZZ")
 for ((x=1; x<= $EndIteration; x++));
 do
@@ -56,13 +50,13 @@ do
 	do 
 		mkdir $SimulationName/$worker > /dev/null 2>&1
 		echo "Copying $copy"
-		DelphesROOT=$CommandsDir/bin/$copy/Events/run_01/tag_1_delphes_events.root
+		DelphesROOT=$CommandsDir/bin/$copy/Events/run_01_decayed_1/tag_1_delphes_events.root
 		destination=$SimulationName/$worker/Delphes_Event$copy$worker$x.root
-		cp $DelphesROOT $destination
+		mv $DelphesROOT $destination
 	done
 	
 	#=====Initiating the Filtering process==========#
-	FileDir=$SimulationName/$worker/*
-	bash $Collection "$FileDir" "$DelphesPT" "$DelphesFC" "$FLC" "$PT" "$MuonPT" "$ElectronPT" "$JetPT" > /dev/null 2>&1
+	#FileDir=$SimulationName/$worker/*
+	#bash $Collection "$FileDir" "$DelphesFCPTReader" "$Output"  
+	wait
 done
-
