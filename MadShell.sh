@@ -9,7 +9,7 @@ echo -e "\e[1;34m Welcome to MadShell! By Thomas Nommensen\e[0m"
 read -p "Worker: " worker
 
 #Extract the directory and change to it!
-dir=$HOME/MadGraphShell/Workers/x/bin/mg5_aMC.py       #MadGraph$worker/bin/mg5_aMC.py
+dir=$HOME/MadGraphShell/Workers/MadGraph$worker/bin/mg5_aMC.py
 directory="$(dirname $dir)/"
 cd $directory
 #Removing any existing files
@@ -22,6 +22,14 @@ echo "Entering Configuration Mode:"
 continue="no"
 while [ "no" == $continue ];
 do
+	#_______________Using a custom Model_________________________#
+	read -p "Enter the model which you would like to run(default is sm): " model
+	if [ $model = "" ];
+	then
+		continue
+	else
+		echo "import model $model" >> MadShell
+	fi 
 	#_____________Process to run__________________________________#
 	read -p "Enter the processes to be generated (ending with ';'): " input 
 	splitter=($(echo $input | fold -w1))
@@ -243,7 +251,6 @@ Evnts=()
 BeamEV1=()
 BeamEV2=()
 #Standard Settings for MadGraph5 
-Import_model="!" 
 Pythia="no"
 SimDetector="Off"
 Weight="no"
@@ -252,7 +259,7 @@ Analysis="Off"
 
 
 #Adding a finish option to menu
-selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Model to Import" "Parton Density Functions" "Finished")
+selections=("Pythia/Detector" "Edit Number of Events" "Edit Beam Energy" "Parton Density Functions" "Finished")
 
 #User interaction point
 echo "If you have enabled [QCD] at the end of the process dont enable pythia because its already enabled!"
@@ -313,7 +320,7 @@ then
 		echo "Chose one of the options below"
 		while [ "$suboptions" == "incomplete" ];
 		do
-			echo -e "You have chosen; Process: \e[1;32m"$process"\e[0m" "Name: \e[1;32m"$Name"\e[0m" ", Number of Events: \e[1;32m"$Evnts"\e[0m, Beam Energy, 1: \e[1;32m"$BeamEV1"\e[0m 2: \e[1;32m"$BeamEV2"\e[0m, Model: \e[1;32m"$Import_model"\e[0m"
+			echo -e "You have chosen; Process: \e[1;32m"$process"\e[0m" "Name: \e[1;32m"$Name"\e[0m" ", Number of Events: \e[1;32m"$Evnts"\e[0m, Beam Energy, 1: \e[1;32m"$BeamEV1"\e[0m 2: \e[1;32m"$BeamEV2"\e[0m"
 			select category in "${selections[@]}";
 			do
 				[ -n "${category}" ] && break
@@ -323,15 +330,9 @@ then
 			if [ "$category" == "Finished" ];
 			then
 				#Writing a config file for MadGraph5 for these particular settings
-				#Used Variables: Pythia, SimDetector, MadSpin, Weight, Import_model , NumberOfRuns, Name
+				#Used Variables: Pythia, SimDetector, MadSpin, Weight, NumberOfRuns, Name
 				rm MadShell > /dev/null 2>&1 #This removes any existing MadShell settings file.
 				rm Plotting > /dev/null 2>&1
-				if [[ "$Import_model" == "!" ]]; then
-					Nothing=""
-				else
-					first="import $Import_model" #Imports models
-					echo "$first" >> MadShell     
-				fi
 
 				second="launch $Name"	      #Launches the output name generated from the start
 				echo "$second"
@@ -371,11 +372,9 @@ then
 				unset Pythia
 				unset MadSpin
 				unset Weight
-				unset Import_model
 				unset SimDetector
 
 				#Standard Settings for MadGraph5 
-				Import_model="!" 
 				Pythia="no"
 				SimDetector="Off"
 				Weight="no"
@@ -514,12 +513,6 @@ then
 						sed -i "/ebeam2/c\     "$BeamEV2"     = ebeam2  ! beam 2 total energy in GeV" $Card
 					fi
 				done
-			#Enters Model to Import
-			elif [ "$category" == "Model to Import" ];
-			then 
-				echo "!!!!!!!!!!!Make sure you READ MadGraph5 instructions!!!!!!!!!!!!!!!!!!"
-				read -p "Please write the model you would like to import (e.g. MSSM...): " Import_model
-			
 			#Parton Density Functions selection 
 			elif [ "$category" == "Parton Density Functions" ];
 			then
