@@ -19,7 +19,50 @@ def RootReading ( directory, TreeName , Branch, LeafName ):
 			LeafValues.append(LeafValue)
 	return LeafValues
 #===============End RootReading===================#
-			
+
+#================ Extracting Data from Delphes root =====================#
+def LeptonReading ( directory, TreeName , Branch, LeafName1, LeafName2, LeafName3):
+	Lepton= collections.namedtuple("Lepton", ["PT", "Charge", "Eta"])
+	LeafValues1 = []
+	LeafValues2 = []
+	LeafValues3 = []
+	File = ROOT.TChain(str(TreeName))
+	File.Add(directory)
+	Number = File.GetEntries()
+	for i in range(Number):
+		Entry = File.GetEntry(i)
+		string = str("File."+Branch+".GetEntries()")
+		EntryFromBranch = eval(string)
+		for j in range(EntryFromBranch):
+			LeafValue1 = File.GetLeaf(str(LeafName1)).GetValue(j)
+			LeafValue2 = File.GetLeaf(str(LeafName2)).GetValue(j)
+			LeafValue3 = File.GetLeaf(str(LeafName3)).GetValue(j)
+			LeafValues1.append(LeafValue1)
+			LeafValues2.append(LeafValue2)
+			LeafValues3.append(LeafValue3)
+	return Lepton(LeafValues1, LeafValues2, LeafValues3)
+#===============End Lepton===================#
+
+#================ Extracting Data from Delphes root =====================#
+def JetReading ( directory, TreeName , Branch, LeafName1, LeafName2 ):
+	Jet= collections.namedtuple("Jet", ["PT", "Eta"])
+	LeafValues1 = []
+	LeafValues2 = []
+	File = ROOT.TChain(str(TreeName))
+	File.Add(directory)
+	Number = File.GetEntries()
+	for i in range(Number):
+		Entry = File.GetEntry(i)
+		string = str("File."+Branch+".GetEntries()")
+		EntryFromBranch = eval(string)
+		for j in range(EntryFromBranch):
+			LeafValue1 = File.GetLeaf(str(LeafName1)).GetValue(j)
+			LeafValue2 = File.GetLeaf(str(LeafName2)).GetValue(j)
+			LeafValues1.append(LeafValue1)
+			LeafValues2.append(LeafValue2)
+	return Jet(LeafValues1, LeafValues2)
+#===============End JetReading===================#
+		
 #======Extracting Data from Delphes Tree==========#
 def TreeLeaves ( directory, TreeName, LeafName):
 	LeafValues = []
@@ -61,228 +104,152 @@ output = sys.argv[5]
 SaveHistROOT = str(output+"/"+DelphFile)
 
 #===========End Future Input arguments============#
-print(SaveHistROOT)
+
 NewFile = ROOT.TFile(SaveHistROOT, "RECREATE")
 NewFile.Close()
 TreeNames="Delphes"
 
-for i in range(1):
+
+#preparing all the data arrays from Delphes
+ET = RootReading(directory, TreeNames, "MissingET", "MissingET.MET")
+print("Finished ET")
+
+#=====Electrons============# 
+Electron_size = TreeLeaves(directory, TreeNames, "Electron_size")
+ElectronEntries = LeptonReading(directory, TreeNames, "Electron", "Electron.PT","Electron.Charge","Electron.Eta")
+ElectronPT = ElectronEntries.PT
+ElectronCharge = ElectronEntries.Charge
+ElectronEta = ElectronEntries.Eta
+
+print("Finished Electrons")
+#=========Muon=============#
+Muon_size = TreeLeaves(directory, TreeNames, "Muon_size")
+MuonEntries = LeptonReading(directory, TreeNames, "Muon", "Muon.PT","Muon.Charge","Muon.Eta")
+MuonPT = MuonEntries.PT
+MuonCharge = MuonEntries.Charge
+MuonEta = MuonEntries.Eta
+
+print("Finished Muon")
+#=========Jets=============#
+Jets_size = TreeLeaves(directory, TreeNames, "Jet_size")
+JetEntries = JetReading(directory, TreeNames, "Jet", "Jet.PT", "Jet.Eta")
+JetPT = JetEntries.PT
+JetEta = JetEntries.Eta
 	
-	#preparing all the data arrays from Delphes
-	ET = RootReading(directory, TreeNames, "MissingET", "MissingET.MET")
-
-	#=====Electrons============# 
-	Electron_size = TreeLeaves(directory, TreeNames, "Electron_size")
-	ElectronPT = RootReading(directory, TreeNames, "Electron", "Electron.PT")
-	ElectronCharge = RootReading(directory, TreeNames, "Electron", "Electron.Charge")
-	ElectronEta = RootReading(directory,TreeNames, "Electron", "Electron.Eta")
-
-	#=========Muon=============#
-	Muon_size = TreeLeaves(directory, TreeNames, "Muon_size")
-	MuonPT = RootReading(directory, TreeNames, "Muon", "Muon.PT")
-	MuonCharge = RootReading(directory, TreeNames, "Muon","Muon.Charge")
-	MuonEta = RootReading(directory, TreeNames, "Muon", "Muon.Eta")
-
-	#=========Jets=============#
-	Jets_size = TreeLeaves(directory, TreeNames, "Jet_size")
-	JetPT = RootReading(directory, TreeNames, "Jet", "Jet.PT")
-	JetEta = RootReading(directory, TreeNames, "Jet", "Jet.Eta")
+print("Finished Jets")
+#Find Dilepton Events
+#temp iteration variables to retrieve root entries
+EvID = 1
+el = 0
+mu = 0
+je = 0
 	
-	#temp iteration variables to retrieve root entries
-	EvID = 1
-	el = 0
-	mu = 0
-	je = 0
+
+#Cuts applied to the particles
+ECutPT = 25
+ECutEta = 2.47
+MCutPT = 20
+MCutEta = 2.5
+JCutPT = 30
+JCutEta = 2.5
+
+#Arrays for temporary storing of the entries:
+Electron = []
+Muon = []
+Jet = []
+Jet0 = []	
+
+#sorting the data into arrays and indexing them with EvID (EventID) along with cutting
+for i in range(len(Jets_size)):
+	JetS = Jets_size[i]
+	MuonS = Muon_size[i]
+	ElectronS = Electron_size[i]
+	MissingET = ET[i]
 	
-	#Arrays for temporary storing of the entries:
-	Electron = []
-	Muon = []
-	Jet = []
-	Jet0 = []	
-
-	#sorting the data into arrays and indexing them with EvID (EventID)
-	for i in range(len(Jets_size)):
-		JetS = Jets_size[i]
-		MuonS = Muon_size[i]
-		ElectronS = Electron_size[i]
-		MissingET = ET[i]
-		
-		#Getting entries from leaves of root file
-		#==========Electrons=============#
-		for e in range(ElectronS):
-			EPT = ElectronPT[el]
-			ECh = ElectronCharge[el]
-			EEta = abs(ElectronEta[el])
-			tempE = [EvID, MissingET, EPT, ECh, EEta]
-			Electron.append(tempE)
-			el = el +1 
-
-		#===========Muon=================#
-		for m in range(MuonS):
-			MPT = MuonPT[mu]
-			MCh = MuonCharge[mu]
-			MEta = abs(MuonEta[mu])
-			tempM = [EvID, MissingET, MPT, MCh, MEta]
-			Muon.append(tempM)
-			mu = mu +1
-
-		#============Jets================#
-		for j in range(JetS):
-			JPT = JetPT[je]
-			JEta = abs(JetEta[je])
-			tempJ = [EvID, MissingET, JPT, JEta, JetS]
-			Jet.append(tempJ)
-			je = je +1
-		
-		if (JetS == 0):
-			tempJ0 = [EvID,MissingET,JetS]
-			Jet0.append(tempJ0)
-		EvID = EvID + 1
-	print("Finished reading")
-	#Performing the cuts on the arrays: 
-	ECutPT = 25
-	ECutEta = 2.47
-	MCutPT = 20
-	MCutEta = 2.5
-	JCutPT = 30
-	JCutEta = 2.5
-	
-	#Some arrays for the data satisfying the cuts	
-	PassedElectron = []
-	PassedMuon = []
-	PassedJet = set()
-	RejectedJet = []
-	
-	for e in range(len(Electron)):
-		EventID = Electron[e][0]
-		MissingET = Electron[e][1]
-		EPT = Electron[e][2]
-		ECh = Electron[e][3]
-		EEta = Electron[e][4]
-		if (EPT > ECutPT and EEta < ECutEta):
-			passE = [EventID,MissingET,EPT,ECh,EEta]
-			PassedElectron.append(passE)
-
-	for m in range(len(Muon)):
-		EventID = Muon[m][0]
-		MissingET = Muon[e][1]
-		MPT = Muon[m][2]
-		MCh = Muon[m][3]
-		MEta = Muon[m][4]
-		if (MPT > MCutPT and MEta < MCutEta):
-			passM = [EventID,MissingET,MPT,MCh,MEta]
-			PassedMuon.append(passM)
-
-	for j in range(len(Jet)):
-		EventID = Jet[j][0]
-		JPT = Jet[j][2]
-		JEta = Jet[j][3]
-		NumberJet = Jet[j][4]
+	#Getting entries from leaves of root file
+	#==========Electrons=============#
+	passE = [] # This ensures that the loop does not throw an error 
+	for e in range(ElectronS):
+		EPT = ElectronPT[el]
+		ECh = ElectronCharge[el]
+		EEta = abs(ElectronEta[el])
+		if (EPT > ECutPT and EEta < ECutEta): #We perform the cuts 
+			passE = [EvID,MissingET,ECh]
+		el = el +1 
+	if (len(passE) > 0):	#If passE is non zero save to list
+		Electron.append(passE)	
+	#===========Muon=================#
+	passM = [] # This ensures that the loop does throw an error 
+	for m in range(MuonS):
+		MPT = MuonPT[mu]
+		MCh = MuonCharge[mu]
+		MEta = abs(MuonEta[mu])
+		if (MPT > MCutPT and MEta < MCutEta): #We perform the cuts 
+			passM = [EvID,MissingET,MCh]
+		mu = mu +1
+	if (len(passM) > 0):	#If passE is non zero save to list
+		Muon.append(passM)
+	#============Jets================#
+	iteration = 0  #reset counter
+	passJ = []
+	for j in range(JetS):
+		JPT = JetPT[je]
+		JEta = abs(JetEta[je])
 		if (JPT > JCutPT and JEta < JCutEta):
-			PassedJet.add(EventID)
-		else:
-			Reject = [EventID,MissingET,NumberJet]
-			RejectedJet.append(Reject)
-	
-	print("Finished Cutting")
-	#Comparing the lepton arrays and enforcing opposite charge 
-	#this then leads to opposite charge and opposite flavor
-	OpFlOpCh = []
-	for e in range(len(PassedElectron)):
-		ECharge = PassedElectron[e][3]
-		EEvent = PassedElectron[e][0]
-		EET = PassedElectron[e][1]
-		for m in range(len(PassedMuon)):
-			MCharge = PassedMuon[m][3]
-			MEvent = PassedMuon[m][0]
-			if (ECharge != MCharge and EEvent == MEvent):
-				temp = [EEvent,EET]
-				OpFlOpCh.append(temp)
-	
-	#========================jet stuff================================#
-	#Compressing the Jet Data into number of jets per run
-	#This redefines the number of jets for a given event 
-	#since some have been cut out. The first "for" loop 
-	#searches the rejected for canditates which can go into J0
-	unique = set()
-	for rej in range(len(RejectedJet)):
-		EventID = RejectedJet[rej][0]
-		En = RejectedJet[rej][1]
-		NumberJets = RejectedJet[rej][2]
-		x = 0 #Counter
-		for r in range(len(RejectedJet)):
-			Event = RejectedJet[r][0]
-			if (Event == EventID):
-				x = x +1
-				if (x == NumberJets):
-					unique.add(EventID)
+			iteration = iteration + 1	#counts the number of times a jet is counted and therefore accepted 
+			passJ = [EvID,MissingET]
+		je = je +1
 
-	#Recovery of ET
-	unique = list(unique) #convert from set object to list 	
-	for u in range(len(unique)):
-		ID = unique[u]
-		EID = 1	
-		for ev in range(len(ET)):
-			Energy = ET[ev]
-			if (EID == ID):
-				temp = [ID,Energy,0]
-				Jet0.append(temp)
-			EID = EID +1
+	if (iteration == 0): #none of the jets have passed therefore it's a 0 jet event
+		tempJ0 = [EvID,MissingET]			
+		Jet0.append(tempJ0)
+	if (len(passJ) > 0):
+		Jet.append(passJ)
 
-	#We Recover the ET again for Jets
-	Jets = list(PassedJet)
-	Jet = []
-	for ID in Jets:
-		EID = 1
-		for Energy in ET:
-			if (EID == ID):
-				temps = [ID,Energy]
-				Jet.append(temps)
-			EID = EID +1
-	print("ET Recovery")
-	#===================================================================#
-	#now compare events in both Jets and OpFlOpCh to find the events which
-	#are responsible for the dilepton events 
-	Jets = []
-	for dl in range(len(OpFlOpCh)):
-		EventIDL = OpFlOpCh[dl][0]
-		MissingET = OpFlOpCh[dl][1]
-		if ( MissingET >= 200 ):
-			MissingET = 200
-		for j in range(len(Jet)):
-			EventIDJ = Jet[j][0]
-			if (EventIDL == EventIDJ):
-				temp = [EventIDL,MissingET]
-				Jets.append(temp)
-	
-	#Now perform last for loops and only find ET for Jets0 and Jets but before that, check
-	#for overlapping events if they are present
-	
-	I = 0
-	for x in range(len(Jet0)):
-		Id = Jet0[x][0]
-		D = 0
-		for j in range(len(Jets)):
-			idj = Jets[j][0]
-			if (Id == idj):
-				Jets.insert(D,[])
-				print("removed an entry due to double up check line 265 of Delphes...Method")
-				Jet0.insert(I,[])
-			D = D +1
-		I = I +1
-	
-	JetET = []
-	Jet0ET = []
-	for e in range(len(Jets)):
-		ET = Jets[e][1]
-		if (ET > 200):
-			ET = 200
-		JetET.append(ET)
-	for x in range(len(Jet0)):
-		ET0 = Jet0[e][1]
-		if (ET > 200):
-			ET = 200
-		Jet0ET.append(ET0)
-	print("Placing new Data in .root")
-	HistoJet ( "jets", process,JetET, SaveHistROOT,1 )
-	HistoJet ( "jets0", process, Jet0ET, SaveHistROOT,1 )
+	if (JetS == 0):
+		tempJ0 = [EvID,MissingET]
+		Jet0.append(tempJ0)
+	EvID = EvID + 1
+
+#Check the Jet list for any 
+
+
+
+
+#Comparing the lepton arrays and enforcing opposite charge 
+#this then leads to opposite charge and opposite flavor
+OpFlOpCh = []
+for e in range(len(Electron)):
+	ECharge = Electron[e][2]
+	EEvent = Electron[e][0]
+	ET = Electron[e][1]
+	if (ET > 200):
+		ET = 200
+	for m in range(len(Muon)):
+		MCharge = Muon[m][2]
+		MEvent = Muon[m][0]
+		if (EEvent == MEvent):
+		#if (ECharge != MCharge  and EEvent == MEvent):
+			temp = [EEvent,ET]
+			OpFlOpCh.append(temp)
+
+#We now find the jets corresponding to the DiLepton Events
+DlJ = []
+DlJ0 = []
+for i in OpFlOpCh:
+	EventID = i[0]
+	ET = i[1]
+	for j in Jet:
+		EventIDJet = j[0]
+		if (EventID == EventIDJet):
+			DlJ.append(ET)	
+	for x in Jet0:
+		EventIDJet0 = x[0]
+		if (EventID == EventIDJet0):
+			DlJ0.append(ET)
+#========== ROOT Figures ============#
+HistoJet ( "jets", process,DlJ, SaveHistROOT,1 )
+HistoJet ( "jets0", process, DlJ0, SaveHistROOT,1 )
+
+
+
