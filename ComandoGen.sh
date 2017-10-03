@@ -16,10 +16,10 @@ DelphesFCPTReader=$9
 MadShellDir=${10}
 #======================================#
 
-initial=("$worker" "p p > t t~; p p > W- j; p p > W+ W-; p p > W- Z; p p > Z j; p p > Z Z;" "pptt; ppWj; ppWW; ppWZ; ppZj; ppZZ;" "y" "2" "p p > W+ j;" "4" "p p > W+ Z;" "7" "y")
+initial=("$worker" "sm-ckm" "p p > t t~ QED=2 @4; p p > W- j QED=2 @4; p p > W+ W- QED=2 @4; p p > W- Z QED=2 @4; p p > Z j QED=2 @4; p p > Z Z QED=2 @4; p p > W- t QED=2 @4;" "pptt; ppWj; ppWW; ppWZ; ppZj; ppZZ; ppWt;" "y" "2" "p p > W+ j;" "4" "p p > W+ Z;" "8" "y")
 EventsInProcess=("" "50000" "50000" "50000" "50000" "50000" "50000")
 NumberOfProcess=6
-inside=("3" "1" "$Beam1" "2" "$Beam2" "3" "1" "2" "2" "4" "y" "6" "5" "y" "13000" "2")
+inside=("3" "1" "$Beam1" "2" "$Beam2" "3" "1" "2" "2" "4" "y" "6" "4" "y" "13000" "2")
 ProcessNames=("pptt" "ppWj" "ppWW" "ppWZ" "ppZj" "ppZZ")
 for ((x=1; x<= $EndIteration; x++));
 do
