@@ -1,12 +1,9 @@
 #!/bin/bash
 directory=$1 #~/MadShell/SimulationData/Renamed/*
-NewDelphesReader=$2 #~/MadShell/DelphesPTmethod.py
-DelphesReader=$3 #~/MadShell/DelphesReader.py
-FC=$4
-PT=$5
-MuonPT=$6
-ElectronPT=$7
-JetPT=$8
+DelphesFCPTMethod=$2 #~/MadShell/DelphesPTmethod.py
+Output=$3
+
+
 for i in $directory
 do
 	File=$i
@@ -32,6 +29,11 @@ do
 		Name="ppWZ"
 		Process="WZ"
 	fi
+	if [[ "$RemoveDelph" == "ppWt" ]];
+	then 
+		Name="ppWt"
+		Process="Wt"
+	fi
 	if [[ "$RemoveDelph" == "ppZj"* ]];
 	then
 		Name="ppZj"
@@ -42,11 +44,8 @@ do
 		Name="ppZZ"
 		Process="ZZ"
 	fi
-	#Delphes Reader which finds the dilepton events with opposite flavor and charge 
-	python $DelphesReader "$File" "$Name" "$Process" "$RemoveDelph" "$FC" &
 
-	sleep 10
-	NewRemoveDelph="CUTS$RemoveDelph"
+	NewRemoveDelph="$RemoveDelph"
 	#Delphes Reader which performs cuts according to PT of electrons muons and jets (see python file)
-	python $NewDelphesReader "$File" "$Name" "$Process" "$NewRemoveDelph" "$PT" "$MuonPT" "$ElectronPT" "$JetPT" &
+	python $DelphesFCPTMethod "$File" "$Name" "$Process" "$NewRemoveDelph" "$OutputDir" 
 done
