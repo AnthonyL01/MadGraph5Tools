@@ -20,7 +20,7 @@ initial=("$worker" "sm-ckm" "p p > t t~ QED=2 @4; p p > W- j QED=2 @4; p p > W+ 
 EventsInProcess=("" "100" "100" "100" "100" "100" "100")
 NumberOfProcess=6
 inside=("3" "1" "$Beam1" "2" "$Beam2" "3" "1" "2" "2" "4" "y" "6" "4" "y" "13000" "2")
-ProcessNames=("pptt" "ppWj" "ppWW" "ppWZ" "ppZj" "ppZZ")
+ProcessNames=("pptt" "ppWj" "ppWW" "ppWZ" "ppZj" "ppZZ" "ppWt")
 for ((x=1; x<= $EndIteration; x++));
 do
 	ComandGen=$CommandsDir/Commands$worker.txt
@@ -56,7 +56,7 @@ do
 	done
 	
 	#=====Initiating the Filtering process==========#
-	#FileDir=$SimulationName/$worker/*
-	#bash $Collection "$FileDir" "$DelphesFCPTReader" "$Output"  
+	FileDir=$SimulationName/$worker/*
+	bash $Collection "$FileDir" "$DelphesFCPTReader" "$Output"  
 	wait
 done
