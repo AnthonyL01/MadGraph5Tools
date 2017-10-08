@@ -15,11 +15,11 @@ Output=$8
 DelphesFCPTReader=$9
 MadShellDir=${10}
 #======================================#
-
+E=50000
 initial=("$worker" "sm-ckm" "p p > t t~ QED=2 @4; p p > W- j QED=2 @4; p p > W+ W- QED=2 @4; p p > W- Z QED=2 @4; p p > Z j QED=2 @4; p p > Z Z QED=2 @4; p p > W- t QED=2 @4;" "pptt; ppWj; ppWW; ppWZ; ppZj; ppZZ; ppWt;" "y" "2" "p p > W+ j;" "4" "p p > W+ Z;" "8" "y")
-EventsInProcess=("" "100" "100" "100" "100" "100" "100")
-NumberOfProcess=6
-inside=("3" "1" "$Beam1" "2" "$Beam2" "3" "1" "2" "2" "4" "y" "6" "4" "y" "13000" "2")
+EventsInProcess=("" "$E" "$E" "$E" "$E" "$E" "$E" "$E")
+NumberOfProcess=7
+inside=("3" "1" "$Beam1" "2" "$Beam2" "3" "1" "2" "2" "4" "y" "6" "4" "y" "90900" "2")
 ProcessNames=("pptt" "ppWj" "ppWW" "ppWZ" "ppZj" "ppZZ" "ppWt")
 for ((x=1; x<= $EndIteration; x++));
 do
@@ -54,9 +54,4 @@ do
 		destination=$SimulationName/$worker/Delphes_Event$copy$worker$x.root
 		mv $DelphesROOT $destination
 	done
-	
-	#=====Initiating the Filtering process==========#
-	FileDir=$SimulationName/$worker/*
-	bash $Collection "$FileDir" "$DelphesFCPTReader" "$Output"  
-	wait
 done
