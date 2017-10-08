@@ -2,8 +2,9 @@ import ROOT
 import sys
 
 #This function merges root files with Histograms
-def CombinedROOT(Files, NameJet, NameJet0):
-	Combined = ROOT.TFile.Open("~/MadShell/PostAnalysisTools/FCMerged.root","UPDATE")
+def CombinedROOT(Files, NameJet, NameJet0,SaveTo):
+	SaveToHist=str(SaveTo+"/Merged.root")
+	Combined = ROOT.TFile.Open(SaveToHist,"UPDATE")
 	j = str(NameJet)
 	j0 = str(NameJet0)
 	jet = ROOT.TH1F(j,"",0,0,0)
@@ -30,6 +31,7 @@ def CombinedROOT(Files, NameJet, NameJet0):
 
 #for i in Files:
 Files = sys.argv[1]
+Save = sys.argv[2]
 Names = Files.split("#*#")
 RemoveWhite= Names.pop(0) #This removes the empty entry in the list
 
@@ -81,4 +83,4 @@ for i in range(len(unique)):
 			run.append(temp)
 	string = str(unique[i])
 	string0 = str(unique0[i])
-	CombinedROOT(run,string,string0)
+	CombinedROOT(run,string,string0,Save)
