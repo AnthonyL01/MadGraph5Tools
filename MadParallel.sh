@@ -4,40 +4,34 @@ read -p "How many workers do you want to run? (enter number) " workers
 read -p "Enter the energy scale you want to run at (GeV): " Energy
 read -p "Enter the number of iterations of interest (enter number) " Iterations
 
-MuonPT=25
-ElectronPT=20
-JetPT=25
-
 #Directory Names
 MeV=MeV
-OutputDir=$PWD/SimulationData/$Energy$MeV
-FLC=$PWD/FCMethod
-PT=$PWD/PTMethod
+OutputDir=$HOME/MadGraphShell/SimulationData/$Energy$MeV
 
 #Creating directories
-mkdir $FLC > /dev/null 2>&1
-mkdir $PT > /dev/null 2>&1
-mkdir $PWD/Logs
+mkdir $HOME/MadGraphShell/Logs 2>&1
 mkdir $OutputDir > /dev/null 2>&1
 mkdir $OutputDir/processed > /dev/null 2>&1
+mkdir $OutputDir/Results 2>&1
+OutputFCPT=$OutputDir/processed
 
-
-rm -rf $PWD/Workers/MadGraph* > /dev/null 2>&1
+rm -rf $HOME/MadGraphShell/Workers/MadGraph* > /dev/null 2>&1
 echo "Creating $workers Workers"
 
 for ((x=1; x<= $workers; x++));
 do
-	mkdir $PWD/Workers/MadGraph$x
-	cp -rf $PWD/Workers/x/* $PWD/Workers/MadGraph$x
-	cp -rf $PWD/Scripts/ComandoGen.sh $PWD/Workers/MadGraph$x/ComandoGen.sh
+	mkdir $HOME/MadGraphShell/Workers/MadGraph$x
+	cp -rf $HOME/MadGraphShell/Workers/x/* $HOME/MadGraphShell/Workers/MadGraph$x
+	cp -rf $HOME/MadGraphShell/Scripts/ComandoGen.sh $HOME/MadGraphShell/Workers/MadGraph$x/ComandoGen.sh
 	echo "Created $x/$workers !"
 done
 
 #Input arguments for ComandoGen.sh
-DelphesFC=$PWD/Scripts/DelphesFCmethod.py
-DelphesPT=$PWD/Scripts/DelphesPTmethod.py
-Collection=$PWD/Scripts/Collection.sh
-MadShellDir=$PWD/Scripts/MadShell.sh
+DelphesFCPT=$HOME/MadGraphShell/Scripts/DelphesFCPTMethod.py
+Collection=$HOME/MadGraphShell/Scripts/Collection.sh
+MadShellDir=$HOME/MadGraphShell/Scripts/MadShell.sh
+MergeMe=$HOME/MadGraphShell/Scripts/MergeMe.sh
+MergeROOT=$HOME/MadGraphShell/Scripts/MergeROOT.py
 
 #Some variable change for the next loop
 work=$workers
@@ -46,14 +40,24 @@ Beam1=$beams
 Beam2=$beams
 steps=$((Iterations/work))
 
-
 for ((i=1; i<= $workers; i++));
 do
 	echo "Worker: $i Time: $(date)"
-	Logs=$PWD/Logs/MadShellLog$i.txt
-	Directory=$PWD/Workers/MadGraph$i
-	bash $Directory/ComandoGen.sh "$i" "$Beam1" "$Beam2" "$steps" "$Directory" "$OutputDir" "$Collection" "$DelphesPT" "$DelphesFC" "$FLC" "$PT" "$MadShellDir" "$MuonPT" "$ElectronPT" "$JetPT" >> $Logs &
+	Logs=$HOME/MadGraphShell/Logs/MadShellLog$i.txt
+	Directory=$HOME/MadGraphShell/Workers/MadGraph$i
+	bash $Directory/ComandoGen.sh "$i" "$Beam1" "$Beam2" "$steps" "$Directory" "$OutputDir" "$Collection" "$OutputFCPT" "$DelphesFCPT"  "$MadShellDir" & >> $Logs
+	
+done
+echo "Completed all runs!"
+wait
+for ((i=1; i<= $workers; i++));
+do
+	dir=$HOME/MadGraphShell/SimulationData/$Energy$MeV/$i
+	bash $Collection "$dir" "$DelphesFCPT" "$OutputFCPT" 
 done
 wait
-
-echo "Completed all runs!"
+echo "Completed Cuts!"
+output2=$OutputFCPT/*
+dest=$OutputDir/Results
+bash $MergeMe "$output2" "$MergeROOT" "$dest"
+exit
