@@ -22,14 +22,9 @@ echo "Entering Configuration Mode:"
 continue="no"
 while [ "no" == $continue ];
 do
-	#_______________Using a custom Model_________________________#
-	read -p "Enter the model which you would like to run(default is sm): " model
-	if [ $model = "" ];
-	then
-		continue
-	else
-		echo "import model $model" >> MadShell
-	fi 
+	read -p "Enter the model which you would like to use (default sm): " model
+	echo "import model $model" >> MadShell
+
 	#_____________Process to run__________________________________#
 	read -p "Enter the processes to be generated (ending with ';'): " input 
 	splitter=($(echo $input | fold -w1))
@@ -251,6 +246,7 @@ Evnts=()
 BeamEV1=()
 BeamEV2=()
 #Standard Settings for MadGraph5 
+Import_model="!" 
 Pythia="no"
 SimDetector="Off"
 Weight="no"
@@ -330,9 +326,8 @@ then
 			if [ "$category" == "Finished" ];
 			then
 				#Writing a config file for MadGraph5 for these particular settings
-				#Used Variables: Pythia, SimDetector, MadSpin, Weight, NumberOfRuns, Name
+				#Used Variables: Pythia, SimDetector, MadSpin, Weight, Import_model , NumberOfRuns, Name
 				rm MadShell > /dev/null 2>&1 #This removes any existing MadShell settings file.
-				rm Plotting > /dev/null 2>&1
 
 				second="launch $Name"	      #Launches the output name generated from the start
 				echo "$second"
@@ -513,6 +508,7 @@ then
 						sed -i "/ebeam2/c\     "$BeamEV2"     = ebeam2  ! beam 2 total energy in GeV" $Card
 					fi
 				done
+
 			#Parton Density Functions selection 
 			elif [ "$category" == "Parton Density Functions" ];
 			then
@@ -553,7 +549,6 @@ then
 	#Finding the number of MadShell Files
 	cd $directory
 	File=($(find $directory -name "MadShell" )) #<----- MadShell for initial run
-	Plo=($(find $directory -name "Plotting" )) #<----- Plotting File
 	for i in "${!File[@]}";
 	do 
 		#===============This is to solve the misname bug========
@@ -575,21 +570,8 @@ then
 		echo "completed $newname"
 		echo "Time: $(date)"
 
-		#============Using DelphesReader.py=================================#
-		Plots=${Plo[$i]}
-		PlotDecision=($(grep -o "no" $Plots | wc -l))
-		if [[ "$PlotDecision" == "1" ]]; 
-		then
-			echo "Not plotting Delphes root"
-		elif [[ "$PlotDecision" == "yes" ]];
-		then 
-
-			Reading="$directory$newname/Events/run_0$y/tag_1_delphes_events.root"
-			#python "$ReadingDirec" "$Reading"  <--------------Fix later on!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		fi	
 		#===================================================================#
 		#Clean Up
 		rm $path
-		rm $Plots
 	done
 fi
