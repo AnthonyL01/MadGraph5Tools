@@ -96,11 +96,11 @@ def HistoJet ( label, Process, MissingET, SaveHistROOT,scaling ):
 ############Program Start##########################
 
 #============Future Input agruments===============#
-directory= "~/Testing/pptt1.root"
-DelphFile = "ppttNoCUTOpFlOpCh.root"
-name = "pptt"
-process = "pptt"
-output = "~/Testing"
+directory= sys.argv[1]
+DelphFile = sys.argv[4]
+name = sys.argv[2]
+process = sys.argv[3]
+output = sys.argv[5]
 SaveHistROOT = str(output+"/"+DelphFile)
 
 #===========End Future Input arguments============#
@@ -146,12 +146,12 @@ je = 0
 	
 
 #Cuts applied to the particles
-ECutPT = 0
-ECutEta = 1000000 #2.47
-MCutPT = 0
-MCutEta = 1000000 #2.5
+ECutPT = 27
+ECutEta = 2.5
+MCutPT = 27
+MCutEta = 2.5
 JCutPT = 0
-JCutEta = 1000000 #2.5
+JCutEta = 2.5
 
 #Arrays for temporary storing of the entries:
 Electron = []
@@ -176,8 +176,8 @@ for i in range(len(Jets_size)):
 		if (EPT > ECutPT and EEta < ECutEta): #We perform the cuts 
 			passE = [EvID,MissingET,ECh]
 		el = el +1 
-		if (len(passE) > 0):	#If passE is non zero save to list
-			Electron.append(passE)	
+	if (len(passE) > 0):	#If passE is non zero save to list
+		Electron.append(passE)	
 	#===========Muon=================#
 	passM = [] # This ensures that the loop does throw an error 
 	for m in range(MuonS):
@@ -187,8 +187,8 @@ for i in range(len(Jets_size)):
 		if (MPT > MCutPT and MEta < MCutEta): #We perform the cuts 
 			passM = [EvID,MissingET,MCh]
 		mu = mu +1
-		if (len(passM) > 0):	#If passE is non zero save to list
-			Muon.append(passM)
+	if (len(passM) > 0):	#If passE is non zero save to list
+		Muon.append(passM)
 	#============Jets================#
 	iteration = 0  #reset counter
 	passJ = []
@@ -199,12 +199,22 @@ for i in range(len(Jets_size)):
 			iteration = iteration + 1	#counts the number of times a jet is counted and therefore accepted 
 			passJ = [EvID,MissingET]
 		je = je +1
+
 	if (iteration == 0): #none of the jets have passed therefore it's a 0 jet event
 		tempJ0 = [EvID,MissingET]			
 		Jet0.append(tempJ0)
-	if (iteration > 0):
+	if (len(passJ) > 0):
 		Jet.append(passJ)
+
+	if (JetS == 0):
+		tempJ0 = [EvID,MissingET]
+		Jet0.append(tempJ0)
 	EvID = EvID + 1
+
+#Check the Jet list for any 
+
+
+
 
 #Comparing the lepton arrays and enforcing opposite charge 
 #this then leads to opposite charge and opposite flavor
@@ -218,7 +228,8 @@ for e in range(len(Electron)):
 	for m in range(len(Muon)):
 		MCharge = Muon[m][2]
 		MEvent = Muon[m][0]
-		if (ECharge != MCharge  and EEvent == MEvent):
+		if (EEvent == MEvent):
+		#if (ECharge != MCharge  and EEvent == MEvent):
 			temp = [EEvent,ET]
 			OpFlOpCh.append(temp)
 
@@ -239,3 +250,6 @@ for i in OpFlOpCh:
 #========== ROOT Figures ============#
 HistoJet ( "jets", process,DlJ, SaveHistROOT,1 )
 HistoJet ( "jets0", process, DlJ0, SaveHistROOT,1 )
+
+
+
