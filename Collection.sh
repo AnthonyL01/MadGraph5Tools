@@ -1,9 +1,9 @@
 #!/bin/bash
-directory=$1/* #~/MadShell/SimulationData/Renamed/*
-DelphesFCPTMethod=$2 #~/MadShell/DelphesPTmethod.py
+DelphesFCPTMethod=$2
 Output=$3
+directory=$1
 z=0
-for i in $directory
+for i in $directory;
 do
 	File=$i
 	echo "$File"
@@ -44,15 +44,36 @@ do
 		Name="ppZZ"
 		Process="ZZ"
 	fi
+	if [[ "$RemoveDelph" == "pptamu"* ]];
+	then
+		Name="pptamu"
+		Process="pptamu"
+	fi
 	z=$((z+1))
 	echo "$z"
-	#Delphes Reader which performs cuts according to PT of electrons muons and jets (see python file)
-	python $DelphesFCPTMethod "$File" "$Name" "$Process" "$RemoveDelph" "$Output" &
-	if [[ z -eq 8 ]];
+	Worked+=("$File")
+	#Delphes Reader which performs cuts according to PT of electrons muons and 	jets (see python file)
+	python $DelphesFCPTMethod "$File" "$Name" "$Process" "$RemoveDelph" "$Output"&
+	if [[ z -eq 4 ]];
 	then 
 		echo "wait"
 		wait
 		z=0
 	fi
 done
+wait
+for x in "${Worked[@]}";
+do
+	rm $x
+	echo "$x"
+done
 exit
+
+
+
+
+
+
+
+
+
