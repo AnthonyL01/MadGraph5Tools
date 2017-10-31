@@ -1,9 +1,15 @@
 #!/bin/bash
-DelphesFCPTMethod=$2
-Output=$3
-directory=$1
+directory1=$HOME/MadGraphShell/PostAnalysis/InsertSamples/*
+
+NewDelphesReader=$HOME/MadGraphShell/PostAnalysis/Parameters.py
+output=$HOME/MadGraphShell/PostAnalysis/OutputCuts/
+Output=$HOME/MadGraphShell/PostAnalysis/OutputCuts/*
+combine=$HOME/MadGraphShell/PostAnalysis/3.sh
 z=0
-for i in $directory;
+ET=30
+ETA=25   #(the format is 25 for 2.5 cuts)
+
+for i in $directory1;
 do
 	File=$i
 	echo "$File"
@@ -29,11 +35,6 @@ do
 		Name="ppWZ"
 		Process="WZ"
 	fi
-	if [[ "$RemoveDelph" == "ppWt"* ]];
-	then
-		Name="ppWt"
-		Process="Wt"
-	fi
 	if [[ "$RemoveDelph" == "ppZj"* ]];
 	then
 		Name="ppZj"
@@ -44,34 +45,39 @@ do
 		Name="ppZZ"
 		Process="ZZ"
 	fi
-	if [[ "$RemoveDelph" == "pptamu"* ]];
+	if [[ "$RemoveDelph" == "ppWt"* ]];
 	then
+		Name="ppWt"
+		Process="Wt"
+	fi
+	if [[ "$RemoveDelph" == "pptamu"* ]];
+	then 
 		Name="pptamu"
-		Process="pptamu"
+		Process="tamu"
 	fi
 	z=$((z+1))
-	echo "$z"
-	Worked+=("$File")
-	#Delphes Reader which performs cuts according to PT of electrons muons and 	jets (see python file)
-	python $DelphesFCPTMethod "$File" "$Name" "$Process" "$RemoveDelph" "$Output"&
-	if [[ z -eq 4 ]];
+	#Delphes Reader which performs cuts according to PT of electrons muons and jets (see python file)
+	python $NewDelphesReader "$File" "$Name" "$Process" "$RemoveDelph" "$output" "$ET" "$ETA" &
+	if [[ z -eq 14 ]];
 	then 
 		echo "wait"
-		wait
 		z=0
+		wait
 	fi
+	echo "$File"	
 done
 wait
-for x in "${Worked[@]}";
+bash $combine
+
+for i in $directory1;
 do
-	rm $x
-	echo "$x"
+	rm $i
 done
-exit
 
-
-
-
+for i in $Output;
+do
+	rm $i
+done
 
 
 
