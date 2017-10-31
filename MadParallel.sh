@@ -27,7 +27,7 @@ do
 done
 
 #Input arguments for ComandoGen.sh
-DelphesFCPT=$HOME/MadGraphShell/Scripts/DelphesFCPTMethod.py
+DelphesFCPT=$HOME/MadGraphShell/Scripts/FCPTNoCut.py
 Collection=$HOME/MadGraphShell/Scripts/Collection.sh
 MadShellDir=$HOME/MadGraphShell/Scripts/MadShell.sh
 MergeMe=$HOME/MadGraphShell/Scripts/MergeMe.sh
@@ -45,7 +45,7 @@ do
 	echo "Worker: $i Time: $(date)"
 	Logs=$HOME/MadGraphShell/Logs/MadShellLog$i.txt
 	Directory=$HOME/MadGraphShell/Workers/MadGraph$i
-	bash $Directory/ComandoGen.sh "$i" "$Beam1" "$Beam2" "$steps" "$Directory" "$OutputDir" "$Collection" "$OutputFCPT" "$DelphesFCPT"  "$MadShellDir" & >> $Logs
+	bash $Directory/ComandoGen.sh "$i" "$Beam1" "$Beam2" "$steps" "$Directory" "$OutputDir" "$Collection" "$OutputFCPT" "$DelphesFCPT"  "$MadShellDir" > $Logs &
 	
 done
 echo "Completed all runs!"
@@ -57,7 +57,6 @@ do
 done
 wait
 echo "Completed Cuts!"
-output2=$OutputFCPT/*
-dest=$OutputDir/Results
-bash $MergeMe "$output2" "$MergeROOT" "$dest"
-exit
+
+
+
