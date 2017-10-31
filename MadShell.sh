@@ -25,6 +25,14 @@ do
 	read -p "Enter the model which you would like to use (default sm): " model
 	echo "import model $model" >> MadShell
 
+	read -p "Define particles (To skip input: !): " particle
+	if [[ "$particle" = "!" ]];	
+	then	
+		continue
+	else
+		echo "define $particle" >> MadShell
+	fi
+
 	#_____________Process to run__________________________________#
 	read -p "Enter the processes to be generated (ending with ';'): " input 
 	splitter=($(echo $input | fold -w1))
@@ -465,7 +473,10 @@ then
 				Card=run_card.dat
 				read -p "Enter the number of events which are to be generated: " Evnts
 				sed -i "/nevents/c\ "$Evnts" = nevents ! Number of unweighted events requested" $Card
-
+				
+				Config=me5_configuration.txt
+				sed -i "/# automatic_html_opening = True/c\# automatic_html_opening = False" $Config
+				sed -i "/# notification_center = True/c\# notification_center = False" $Config
 			#Enters Edit Beam Energy
 			elif [ "$category" == "Edit Beam Energy" ];
 			then 
